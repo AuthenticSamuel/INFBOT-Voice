@@ -1,4 +1,39 @@
 {
-    "INFBOT_VERSION": "3.0.dev",
-    "GLOBAL_PREFIX": "infbot/"
+    "VERSION": {
+        "INFBOT": "dev3.0",
+        "NODEJS": "16.6.2",
+        "DISCORDJS": "13.1.0"
+    },
+    "DEVELOPER_DISCORD_SERVER": "https://discord.gg/jwEp6VX",
+    "SUPPORT_DISCORD_SERVER": "https://discord.gg/jwEp6VX",
+    "BOT_AVATAR": "https://i.imgur.com/OjNo39d.png",
+    "HELPERS": [
+        "Atineon#2652",
+        "Poux7#0001"
+    ],
+    "PATCH": {
+        "NOTES": "INFBOT V3.0.0 in development. Please be patient.",
+        "DATE": "15/08/21 : 00:00 UTC+2"
+    },
+    "AUTO_VC": {
+        "CHANNEL_NAME": "➕ New Channel",
+        "CATEGORY_NAME": "INFBOT Voice Channels"
+    },
+    "PREFIX": {
+        "GLOBAL": "infbot/",
+        "LOCAL": "inf/"
+    },
+    "DELAY": {
+        "DELETE": 200,
+        "STATUS": 15000
+    },
+    "COLOR": {
+        "ERROR": "#990000",
+        "EVENT": "#0099FF",
+        "SUCCESS": "#009900"
+    },
+    "CONSOLE_EXECUTED_COMMAND": 1,
+    "INFERNAL": {
+        "REACTION_ROLES_CHANNEL": "649915868939288586"
+    }
 }

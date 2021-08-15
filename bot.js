@@ -6,7 +6,7 @@
 */
 
 require("dotenv").config();
-const { Client, Intents, Options } = require("discord.js");
+const { Client, Intents, Options, MessageReaction, MessageEmbed } = require("discord.js");
 const client = new Client({
     intents: [
         Intents.FLAGS.GUILDS,
@@ -29,25 +29,56 @@ function getDateTime() {
     return `${getDate.toLocaleString()}`;
 };
 
+for (let i = 0; i < 10; i++) console.log("");
+console.log(colors.cyan(`${getDateTime()} >>> Starting INFBOT...`));
+
 client.on("ready", () => {
 
     let totalMembers = 0;
     let totalChannels = 0;
     client.guilds.cache.forEach((guild) => {
         if (guild.memberCount != NaN) {
-            totalMembers += guild.memberCount;
+            totalMembers += guild.memberCount - 1;
         };
         totalChannels += guild.channels.cache.filter((c) => c.type !== "GUILD_CATEGORY").size;
     });
     
-    console.log(`${colors.cyan(`\n\n\n${getDateTime()} >>> INFBOT ${colors.white("V" + config.INFBOT_VERSION)} Online • ${colors.white(client.guilds.cache.size)} guilds • ${colors.white(totalMembers)} members • ${colors.white(totalChannels)} channels`)}`);
+    console.log(`${colors.cyan(`${getDateTime()} >>> INFBOT ${colors.white(config.VERSION.INFBOT)} Online • ${colors.white(client.guilds.cache.size)} guilds • ${colors.white(totalMembers)} members • ${colors.white(totalChannels)} channels`)}`);
     
+    // FOR FIRST INITIALIZATION ONLY AND TO BE USED ONCE (this will add the guilds that your bot is already in to the database)
+
+    // client.guilds.cache.forEach((guild) => {
+    //     try {
+    //         connection.query(
+    //             `
+    //             INSERT INTO guilds
+    //             VALUES('${guild.id}', '${guild.ownerId}')
+    //             `
+    //         );
+    //         connection.query(
+    //             `
+    //             INSERT INTO guildconfig (guildId)
+    //             VALUES('${guild.id}')
+    //             `
+    //         );
+    //     } catch (err) {
+    //         console.log(`${colors.red(`${getDateTime()} >>> Error detected:`)}`);
+    //         console.log(err);
+    //     };
+    // });
+
+    // END OF ONE-USE SECTION
+
     let allGuildInfo = [];
     client.guilds.cache.forEach((guild) => {
         allGuildInfo.push(new Server(guild.id, guild.name, guild.memberCount, guild.channels.cache.filter((c) => c.type !== "GUILD_CATEGORY").size));
 
         connection.query(
-            `SELECT guildLocalPrefix FROM guildconfig WHERE guildId = '${guild.id}'`
+            `
+            SELECT guildLocalPrefix
+            FROM guildconfig
+            WHERE guildId = '${guild.id}'
+            `
         ).then(result => {
             guildLocalPrefixes.set(guild.id, result[0][0].guildLocalPrefix);
         });
@@ -61,22 +92,25 @@ client.on("ready", () => {
     }
 
     console.table(allGuildInfo, ["Guild_ID", "Guild_Name", "Member_Count", "Channel_Count"]);
-    console.log(colors.cyan(`${getDateTime()} >>> The current GLOBAL prefix is set to ${colors.white(config.GLOBAL_PREFIX)}.`));
+    console.log(colors.cyan(`${getDateTime()} >>> The current GLOBAL prefix is set to ${colors.white(config.PREFIX.GLOBAL)}.`));
 
-    // FOR FIRST INITIALIZATION ONLY AND TO BE USED ONCE (this will add the guilds that your bot is already in to the database)
-    // client.guilds.cache.forEach((guild) => {
-    //     try {
-    //         connection.query(
-    //             `INSERT INTO guilds VALUES('${guild.id}', '${guild.ownerId}')`
-    //         );
-    //         connection.query(
-    //             `INSERT INTO guildconfig (guildId) VALUES('${guild.id}')`
-    //         );
-    //     } catch (err) {
-    //         console.log(`${colors.red(`${getDateTime()} >>> Error detected:`)}`);
-    //         console.log(err);
-    //     };
-    // });
+    const status = [
+        `${client.guilds.cache.size} servers | ${config.PREFIX.GLOBAL}help`,
+        `${client.channels.cache.filter((c) => c.type !== "GUILD_CATEGORY").size} channels | ${config.PREFIX.GLOBAL}help`,
+        `${totalMembers} users | ${config.PREFIX.GLOBAL}help`,
+        `${config.PREFIX.GLOBAL}bot for updates`,
+    ];
+
+    let x = 0;
+    setInterval(() => {
+
+        client.user.setActivity(status[x], {type: "WATCHING"});
+        x = x + 1;
+        if (x == status.length) {
+            x = 0;
+        }
+
+    }, config.DELAY.STATUS);
 
 });
 
@@ -84,10 +118,16 @@ client.on("guildCreate", async (guild) => {
 
     try {
         await connection.query(
-            `INSERT INTO guilds VALUES('${guild.id}', '${guild.ownerId}')`
+            `
+            INSERT INTO guilds
+            VALUES('${guild.id}', '${guild.ownerId}')
+            `
         );
         await connection.query(
-            `INSERT INTO guildconfig (guildId) VALUES('${guild.id}')`
+            `
+            INSERT INTO guildconfig (guildId)
+            VALUES('${guild.id}')
+            `
         );
     } catch (err) {
         console.log(`${colors.red(`${getDateTime()} >>> Error detected:`)}`);
@@ -100,13 +140,25 @@ client.on("guildDelete", async (guild) => {
 
     try {
         await connection.query(
-            `DELETE FROM guilds WHERE guildId = '${guild.id}'`
+            `
+            DELETE
+            FROM guilds
+            WHERE guildId = '${guild.id}'
+            `
         );
         await connection.query(
-            `DELETE FROM guildconfig WHERE guildId = '${guild.id}'`
+            `
+            DELETE
+            FROM guildconfig
+            WHERE guildId = '${guild.id}'
+            `
         );
         await connection.query(
-            `DELETE FROM guildchannels WHERE guildId = '${guild.id}'`
+            `
+            DELETE
+            FROM guildchannels
+            WHERE guildId = '${guild.id}'
+            `
         );
     } catch (err) {
         console.log(`${colors.red(`${getDateTime()} >>> Error detected:`)}`);
@@ -114,6 +166,264 @@ client.on("guildDelete", async (guild) => {
     };
 
 });
+
+client.on("messageCreate", async (message) => {
+
+    if (message.author.bot || !message.guild) return;
+    
+    let localPrefix = guildLocalPrefixes.get(message.guild.id);
+
+    if (message.content.startsWith(config.PREFIX.GLOBAL) || message.content.startsWith(localPrefix)) {
+        
+        if (message.content.startsWith(localPrefix)) usedPrefix = localPrefix;
+        else usedPrefix = config.PREFIX.GLOBAL;
+
+        let [ usedCommand, ...args ] = message.content.split(usedPrefix).pop().split(" ");
+
+        let MessageProperties = function(message, usedPrefix, usedCommand, providedArgs = "") {
+            this.message = message,
+            this.prefix = usedPrefix,
+            this.command = usedCommand,
+            this.args = providedArgs
+        };
+
+        let sentMessage = new MessageProperties(message, usedPrefix, usedCommand, args);
+
+        switch (sentMessage.command) {
+            case "help": COMMAND_HELP(message); break;
+            case "bot": COMMAND_BOT(message); break;
+            case "setup": COMMAND_SETUP(sentMessage); break;
+            case "unsetup": COMMAND_UNSETUP(sentMessage); break;
+        };
+
+    };
+
+});
+
+function COMMAND_HELP(message) {
+
+    message.reply("help");
+
+};
+
+function COMMAND_BOT(message) {
+
+    let totalSeconds = (client.uptime / 1000);
+    let totalDays = Math.floor(totalSeconds / 86400);
+    totalSeconds %= 86400;
+    let totalHours = Math.floor(totalSeconds / 3600);
+    totalSeconds %= 3600;
+    let totalMinutes = Math.floor(totalSeconds / 60);
+    let seconds = Math.floor(totalSeconds % 60);
+    let uptime = `${totalDays}:${leadingZeroes(totalHours)}:${leadingZeroes(totalMinutes)}:${leadingZeroes(seconds)}`;
+    
+    function leadingZeroes(value) {
+        let valueString = value + "";
+        if (valueString.length < 2) return "0" + valueString;
+        else return valueString;
+    };
+    
+    message.channel.send("Getting latency values...").then(async (msg) => {
+        msg.delete();
+        let botEmbed = new MessageEmbed()
+            .setColor(config.COLOR.EVENT)
+            .setTitle("INFBOT")
+            .setThumbnail(config.BOT_AVATAR)
+            .addFields(
+                {name: "Uptime", value: uptime, inline: true},
+                {name: "Developer", value: "Zenyth#0001", inline: true},
+                {name: "Latency", value: `Bot: ${msg.createdTimestamp - message.createdTimestamp}ms\nAPI: ${Math.round(client.ws.ping)}ms`, inline: true},
+                {name: "Version", value: config.VERSION.INFBOT, inline: true},
+                {name: "Node JS", value: config.VERSION.NODEJS, inline: true},
+                {name: "Discord JS", value: config.VERSION.DISCORDJS, inline: true},
+                {name: "Users", value: `${client.guilds.cache.reduce((a, g) => a + g.memberCount - 1, 0)} users`, inline: true},
+                {name: "Servers", value: `${client.guilds.cache.size} servers`, inline: true},
+                {name: "Channels", value: `${client.channels.cache.filter((c) => c.type !== "GUILD_CATEGORY").size} channels`, inline: true},
+                {name: "Support Server", value: config.SUPPORT_DISCORD_SERVER, inline: false},
+                {name: `Last Update [${config.PATCH.DATE}]`, value: config.PATCH.NOTES, inline: false}
+            );
+            message.reply({embeds: [botEmbed]});
+    })
+
+};
+
+async function COMMAND_SETUP(sentMessage) {
+
+    let ownerId;
+    await connection.query(
+        `
+        SELECT guildOwner
+        FROM guilds
+        WHERE guildId = '${sentMessage.message.guild.id}'
+        `
+    ).then(result => {
+        ownerId = result[0][0].guildOwner;
+    });
+
+    if (sentMessage.message.author.id != ownerId) {
+        consoleLoggingCommands(sentMessage, "ERROR: PERMS");
+        return sentMessage.message.reply("You are not the owner of this server.");
+    };
+
+    let channelCreator;
+    await connection.query(
+        `
+        SELECT guildChannelCreator
+        FROM guildconfig
+        WHERE guildId = '${sentMessage.message.guild.id}'
+        `
+    ).then(result => {
+        channelCreator = result[0][0].guildChannelCreator;
+    });
+
+    if (channelCreator !== "None") {
+        consoleLoggingCommands(sentMessage, "ERROR: ACTIVE");
+        return sentMessage.message.reply("INFBOT Voice Channels are already setup on this server.");
+    };
+
+    try {
+
+        let channelCreatorCategory;
+        await sentMessage.message.guild.channels.create(
+            config.AUTO_VC.CATEGORY_NAME,
+            {
+                type: "GUILD_CATEGORY",
+            }
+        ).then(async (c) => {
+            await connection.query(
+                `
+                UPDATE guildconfig
+                SET guildChannelCreatorCategory = '${c.id}'
+                WHERE guildId = '${c.guildId}'
+                `
+            );
+            channelCreatorCategory = c.id;
+        });
+
+        await sentMessage.message.guild.channels.create(
+            config.AUTO_VC.CHANNEL_NAME,
+            {
+                type: "GUILD_VOICE",
+                parent: channelCreatorCategory,
+            }
+        ).then(async (c) => {
+            await connection.query(
+                `
+                UPDATE guildconfig
+                SET guildChannelCreator = '${c.id}'
+                WHERE guildId = '${c.guildId}'
+                `
+            );
+        });
+
+        consoleLoggingCommands(sentMessage, "SUCCESS");
+
+    } catch (err) {
+
+        console.log(err);
+
+    }
+
+};
+
+async function COMMAND_UNSETUP(sentMessage) {
+
+    let ownerId;
+    await connection.query(
+        `
+        SELECT guildOwner
+        FROM guilds
+        WHERE guildId = '${sentMessage.message.guild.id}'
+        `
+    ).then(result => {
+        ownerId = result[0][0].guildOwner;
+    });
+
+    if (sentMessage.message.author.id != ownerId) {
+        consoleLoggingCommands(sentMessage, "ERROR: PERMS");
+        return sentMessage.message.reply("You are not the owner of this server.");
+    };
+
+    let channelCreatorCategory;
+    await connection.query(
+        `
+        SELECT guildChannelCreatorCategory
+        FROM guildconfig
+        WHERE guildId = '${sentMessage.message.guild.id}'
+        `
+    ).then(result => {
+        channelCreatorCategory = result[0][0].guildChannelCreatorCategory;
+    });
+
+    let channelCreator;
+    await connection.query(
+        `
+        SELECT guildChannelCreator
+        FROM guildconfig
+        WHERE guildId = '${sentMessage.message.guild.id}'
+        `
+    ).then(result => {
+        channelCreator = result[0][0].guildChannelCreator;
+    });
+
+    if (channelCreator === "None" && channelCreatorCategory === "None") {
+        consoleLoggingCommands(sentMessage, "ERROR: INACTIVE");
+        return sentMessage.message.reply("INFBOT Voice Channels aren't setup on this server.");
+    };
+
+    if ((channelCreator === "None" && channelCreatorCategory !== "None") || (channelCreator !== "None" && channelCreatorCategory === "None")) {
+        consoleLoggingCommands(sentMessage, "ERROR: PARTIAL ACTIVE");
+        await connection.query(
+            `
+            UPDATE guildconfig
+            SET guildChannelCreatorCategory = 'None'
+            WHERE guildId = '${sentMessage.message.guild.id}'
+            `
+        );
+        await connection.query(
+            `
+            UPDATE guildconfig
+            SET guildChannelCreator = 'None'
+            WHERE guildId = '${sentMessage.message.guild.id}'
+            `
+        );
+        return sentMessage.message.reply("INFBOT found that your server was partially setup for INFVCs. We've reset the setup process to avoid future bugs.");
+    };
+
+    await connection.query(
+        `
+        UPDATE guildconfig
+        SET guildChannelCreatorCategory = 'None'
+        WHERE guildId = '${sentMessage.message.guild.id}'
+        `
+    );
+    await connection.query(
+        `
+        UPDATE guildconfig
+        SET guildChannelCreator = 'None'
+        WHERE guildId = '${sentMessage.message.guild.id}'
+        `
+    );
+    
+    sentMessage.message.guild.channels.cache.get(channelCreator).delete();
+    sentMessage.message.guild.channels.cache.get(channelCreatorCategory).delete();
+    consoleLoggingCommands(sentMessage, "SUCCESS");
+    return sentMessage.message.reply("INFBOT Voice Channels have been removed from this server.");
+            
+};
+
+
+        
+function consoleLoggingCommands(sentMessage, result = "") {
+
+    if (result.startsWith("SUCCESS")) {
+        result = colors.green(result)
+    } else if (result.startsWith("ERROR")) {
+        result = colors.red(result)
+    }
+    console.log(colors.white(`${getDateTime()} >>> A user executed the ${colors.magenta(sentMessage.command)} command. [${result}]`));
+
+};
 
 (async () => {
 
