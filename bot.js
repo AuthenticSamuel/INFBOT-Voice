@@ -305,10 +305,64 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
 
 });
 
-function COMMAND_HELP(sentMessage) {
+async function COMMAND_HELP(sentMessage) {
 
-    sentMessage.message.reply("help");
-    consoleLoggingCommands(sentMessage);
+    let help1Embed = new MessageEmbed()
+        .setColor(config.COLOR.EVENT)
+        .setTitle("INFBOT | Help Menu")
+        .addFields(
+            {name: "Thank you for using INFBOT!", value: "*GLOBAL* prefix is `" + config.PREFIX.GLOBAL + "`.\nFind your local prefix by typing `" + config.PREFIX.GLOBAL + "prefix` in a server I'm in (default: `" + config.PREFIX.LOCAL + "`).\nRemember that all commands below can use both the *GLOBAL* & *LOCAL* prefixes", inline: false},
+            {name: "\u200b", value: "\u200b", inline: false},
+            {name: "General Commands", value: "These commands help you manage INFBOT and most importantly, setup INFBOT Voice Channels.", inline: false},
+
+            {name: `${config.PREFIX.GLOBAL}help`, value: "```ini\n[Shows the help menu.]```", inline: false},
+            
+            {name: `${config.PREFIX.GLOBAL}bot`, value: "```ini\n[Shows you INFBOT info and updates.]\n\u200b\n\u200b```", inline: true},
+            {name: `${config.PREFIX.GLOBAL}user`, value: "```ini\n[Shows you some info about you or a user you mentionned.]```", inline: true},
+            {name: `${config.PREFIX.GLOBAL}server`, value: "```ini\n[Shows you some info about a server.]\n\u200b```", inline: true},
+
+            {name: `${config.PREFIX.GLOBAL}setup [Owner]`, value: "```ini\n[Sets up INFBOT's Automatic Voice Channels.]\n\u200b```", inline: true},
+            {name: `${config.PREFIX.GLOBAL}unsetup [Owner]`, value: "```ini\n[Gets rid of INFBOT's Automatic Voice Channels.]\n\u200b```", inline: true},
+            {name: `${config.PREFIX.GLOBAL}status`, value: "```ini\n[Shows you if INFBOT's Automatic Voice Channels are active or not.]```", inline: true},
+
+            {name: `${config.PREFIX.GLOBAL}prefix`, value: "```ini\n[Shows you the current prefixes (GLOBAL & LOCAL).]```", inline: true},
+            {name: `${config.PREFIX.GLOBAL}setprefix [Owner]`, value: "```ini\n[Allows you to change the LOCAL prefix.]```", inline: true},
+            {name: "\u200b", value: "\u200b", inline: false},
+
+            {name: "Channel Controls", value: "These are commands that can be used when you've in a regular VC or in a INFVC (INFBOT Voice Channel). Commands marked with asterisks (*) can only be used in INFVCs.", inline: false},
+            
+            {name: `${config.PREFIX.GLOBAL}channelinfo`, value: "```ini\n[View some info about the VC you're currently in.]```", inline: true},
+            {name: `${config.PREFIX.GLOBAL}setbitrate`, value: "```ini\n[Change the bitrate of the INFVC you're currently in.]```", inline: true},
+            {name: `${config.PREFIX.GLOBAL}setuserlimit`, value: "```ini\n[Change the user limit of the INFVC you're currently in.]```", inline: true},
+
+            {name: `${config.PREFIX.GLOBAL}lock`, value: "```ini\n[Make the INFVC you're currently in private (users can no longer join).]```", inline: true},
+            {name: `${config.PREFIX.GLOBAL}unlock`, value: "```ini\n[Make the INFVC you're currently in public (default behavior).]```", inline: true},
+
+            // template:  {name: `${config.PREFIX.GLOBAL}`, value: "```ini\n[]```", inline: },
+        );
+
+    let help2Embed = new MessageEmbed()
+        .setColor(config.COLOR.EVENT)
+        .setTitle("INFBOT | Additionnal Help")
+        .setDescription("Do you need any additionnal help? Do you have any questions?")
+        .addField("Head over to our Discord Server:", "[Infernal Discord Server](https://discord.gg/jwEp6VX)");
+
+    let help3Embed = new MessageEmbed()
+        .setColor(config.COLOR.EVENT)
+        .setTitle("INFBOT | Invite & Vote")
+        .setDescription("Don't forget to add this bot to your server or upvote it if you like it!")
+        .addField("Want to use INFBOT on your own server?", "[Invite INFBOT to your server](https://discord.com/oauth2/authorize?client_id=732316684496404521&scope=bot&permissions=17047568)")
+        .addField("Head over to our Top.gg page:", "[Vote on Top.gg](https://top.gg/bot/732316684496404521)")
+        .setTimestamp()
+        .setFooter(`INFBOT by Zenyth#0001 • V${config.VERSION.INFBOT}`, config.BOT_AVATAR);
+    await sentMessage.message.author.send({embeds: [help1Embed, help2Embed, help3Embed]});
+
+        consoleLoggingCommands(sentMessage);
+        
+    let helpEmbed = new MessageEmbed()
+        .setColor(config.COLOR.EVENT)
+        .setTitle("Check your private messages!");
+    return sentMessage.message.reply({embeds: [helpEmbed]});
 
 };
 
