@@ -27,11 +27,6 @@ const guildCreatorChannels = new Map();
 const guildAutoChannels = new Map();
 const temporary = [];
 
-function getDateTime() {
-    let getDate = new Date();
-    return `${getDate.toLocaleString()}`;
-};
-
 for (let i = 0; i < 10; i++) console.log("");
 console.log(colors.cyan(`${getDateTime()} >>> Starting INFBOT...`));
 
@@ -390,6 +385,13 @@ async function COMMAND_UNSETUP(sentMessage) {
             WHERE guildId = '${sentMessage.message.guild.id}'
             `
         );
+        await connection.query(
+            `
+            DELETE
+            FROM guildchannels
+            WHERE guildId = '${sentMessage.message.guild.id}'
+            `
+        );
         return sentMessage.message.reply("INFBOT found that your server was partially setup for INFVCs. We've reset the setup process to avoid future bugs.");
     };
 
@@ -404,6 +406,13 @@ async function COMMAND_UNSETUP(sentMessage) {
         `
         UPDATE guildconfig
         SET guildChannelCreator = 'None'
+        WHERE guildId = '${sentMessage.message.guild.id}'
+        `
+    );
+    await connection.query(
+        `
+        DELETE
+        FROM guildchannels
         WHERE guildId = '${sentMessage.message.guild.id}'
         `
     );
@@ -467,14 +476,18 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
         if (oldState.channelId === autoChannels[i]) {
             let autoChannel = oldState.guild.channels.cache.get(autoChannels[i]);
             if (autoChannel.members.size < 1) {
-                autoChannel.delete();
-                await connection.query(
-                    `
-                    DELETE
-                    FROM guildchannels
-                    WHERE channelId = '${autoChannel.id}'
-                    `
-                );
+                try {
+                    autoChannel.delete();
+                    await connection.query(
+                        `
+                        DELETE
+                        FROM guildchannels
+                        WHERE channelId = '${autoChannel.id}'
+                        `
+                    );
+                } catch (err) {
+                    console.log(err);
+                }
             };
         };
     };
@@ -490,6 +503,11 @@ function consoleLoggingCommands(sentMessage, result = "") {
     }
     console.log(colors.white(`${getDateTime()} >>> A user executed the ${colors.magenta(sentMessage.command)} command. [${result}]`));
 
+};
+
+function getDateTime() {
+    let getDate = new Date();
+    return `${getDate.toLocaleString()}`;
 };
 
 (async () => {
