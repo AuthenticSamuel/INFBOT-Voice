@@ -30,7 +30,8 @@
     "COLOR": {
         "ERROR": "#990000",
         "EVENT": "#0099FF",
-        "SUCCESS": "#009900"
+        "SUCCESS": "#009900",
+        "WARNING": "#FFCC00"
     },
     "CONSOLE_EXECUTED_COMMAND": 1,
     "INFERNAL": {

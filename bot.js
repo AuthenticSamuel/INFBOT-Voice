@@ -188,14 +188,119 @@ client.on("messageCreate", async (message) => {
         let sentMessage = new MessageProperties(message, usedPrefix, usedCommand, args);
 
         switch (sentMessage.command) {
-            case "help": COMMAND_HELP(sentMessage); break;
+
+            // Basic commands
+            case "help": COMMAND_HELP(sentMessage); break; //
             case "bot": COMMAND_BOT(sentMessage); break;
+            case "user": COMMAND_USER(sentMessage); break;
+            case "server": COMMAND_SERVER(sentMessage); break;
             case "prefix": COMMAND_PREFIX(sentMessage); break;
-            case "changeprefix": COMMAND_CHANGEPREFIX(sentMessage); break;
+            case "setprefix": COMMAND_SETPREFIX(sentMessage); break;
+
+            // Automatic voice channel commands
+            case "status": COMMAND_STATUS(sentMessage); break;
             case "setup": COMMAND_SETUP(sentMessage); break;
             case "unsetup": COMMAND_UNSETUP(sentMessage); break;
+            case "channelinfo": COMMAND_CHANNELINFO(sentMessage); break;
+            case "setbitrate": COMMAND_SETBITRATE(sentMessage); break;
+            case "setuserlimit": COMMAND_SETUSERLIMIT(sentMessage); break;
+            case "lock": COMMAND_LOCK(sentMessage); break;
+            case "unlock": COMMAND_UNLOCK(sentMessage); break;
+
         };
 
+    };
+
+});
+
+client.on("voiceStateUpdate", async (oldState, newState) => {
+
+    if (newState.channelId === oldState.channelId) return;
+
+    let channelCreator;
+    let channelCreatorCategory;
+    await connection.query(
+        `
+        SELECT *
+        FROM guildconfig
+        WHERE guildId = '${newState.guild.id}'
+        `
+    ).then(result => {
+        channelCreator = result[0][0].guildChannelCreator;
+        channelCreatorCategory = result[0][0].guildChannelCreatorCategory;
+    });
+
+    if (newState.channelId === channelCreator) {
+
+        try {
+
+            consoleLoggingAutoVoice("creating");
+
+            await newState.guild.channels.create(
+                newState.member.user.username,
+                {
+                    type: "GUILD_VOICE",
+                    parent: channelCreatorCategory,
+                }
+            ).then(async (c) => {
+                newState.member.voice.setChannel(c.id);
+                await connection.query(
+                    `
+                    INSERT INTO guildchannels (guildId, channelId)
+                    VALUES ('${newState.guild.id}', '${c.id}')
+                    `
+                );
+            });
+
+            consoleLoggingAutoVoice("created");
+
+        } catch (err) {
+            console.log(err);
+        };
+    };
+    
+    let autoChannels = [];
+    await connection.query(
+        `
+        SELECT channelId
+        FROM guildchannels
+        WHERE guildId = '${newState.guild.id}'
+        `
+    ).then(result => {
+        for (let i = 0; i < result[0].length; i++) {
+            autoChannels.push(result[0][i].channelId);
+        }
+    });
+
+    for (let i = 0; i < autoChannels.length; i++) {
+
+        if (oldState.channelId === autoChannels[i]) {
+
+            let autoChannel = oldState.guild.channels.cache.get(autoChannels[i]);
+
+            if (autoChannel.members.size < 1) {
+
+                consoleLoggingAutoVoice("deleting");
+
+                try {
+
+                    autoChannel.delete();
+                    await connection.query(
+                        `
+                        DELETE
+                        FROM guildchannels
+                        WHERE channelId = '${autoChannel.id}'
+                        `
+                    );
+
+                } catch (err) {
+                    console.log(err);
+                };
+
+                consoleLoggingAutoVoice("deleted");
+
+            };
+        };
     };
 
 });
@@ -242,14 +347,57 @@ function COMMAND_BOT(message) {
 
 };
 
+function COMMAND_USER(sentMessage) {
 
+    consoleLoggingCommands(sentMessage)
+
+    let member = sentMessage.message.mentions.members.first() || sentMessage.message.member
+    let user = sentMessage.message.mentions.users.first() || sentMessage.message.author
+
+    let userEmbed = new MessageEmbed()
+        .setColor(config.COLOR.EVENT)
+        .setThumbnail(user.avatarURL())
+        .setTitle("User Information:")
+        .setDescription("Here's some information about this user")
+        .addFields(
+            {name: "Username:", value: `${user.username}#${user.discriminator}`},
+            {name: "ID:", value: `${user.id}`},
+            {name: "Joined this server:", value: `${formatFullDate(member.joinedAt)}`},
+            {name: "Joined Discord:", value: `${formatFullDate(user.createdAt)}`},
+        );
+    return sentMessage.message.reply({embeds: [userEmbed]})
+
+};
+
+function COMMAND_SERVER(sentMessage) {
+
+    consoleLoggingCommands(sentMessage)
+
+    let guild = sentMessage.message.guild;
+
+    let guildEmbed = new MessageEmbed()
+        .setColor(config.COLOR.EVENT)
+        .setThumbnail(guild.iconURL())
+        .setTitle(`Server Information: ${guild.name}`)
+        .setDescription("Here's some information about this server")
+        .addFields(
+            {name: "Members:", value: `${guild.memberCount}`},
+            {name: "Channel Count:", value: `${guild.channels.cache.filter((c) => c.type !== "GUILD_CATEGORY").size}`},
+            {name: "Created:", value: `${formatFullDate(guild.createdAt)}`},
+            {name: "INFBOT LOCAL prefix:", value: `${guildLocalPrefixes.get(guild.id)}`},
+        );
+    return sentMessage.message.reply({embeds: [guildEmbed]});
+
+};
 
 function COMMAND_PREFIX(sentMessage) {
+
+    consoleLoggingCommands(sentMessage)
 
     let prefixEmbed = new MessageEmbed()
         .setColor(config.COLOR.EVENT)
         .setTitle("INFBOT Command Prefixes")
-        .setDescription("Prefixes are used when you want to execute INFBOT commands. There is a *GLOBAL* one which is manually set by the developer and a *LOCAL* one that admins can change on a server-to-server basis with the **infbot/changeprefix** command.")
+        .setDescription("Prefixes are used when you want to execute INFBOT commands. There is a *GLOBAL* one which is manually set by the developer and a *LOCAL* one that admins can change on a server-to-server basis with the `" + config.PREFIX.GLOBAL + "setprefix` command.")
         .addFields(
             {name: "GLOBAL", value: config.PREFIX.GLOBAL, inline: true},
             {name: "LOCAL", value: guildLocalPrefixes.get(sentMessage.message.guild.id), inline: true}
@@ -258,7 +406,7 @@ function COMMAND_PREFIX(sentMessage) {
 
 };
 
-async function COMMAND_CHANGEPREFIX(sentMessage) {
+async function COMMAND_SETPREFIX(sentMessage) {
 
     let ownerId;
     await connection.query(
@@ -272,21 +420,27 @@ async function COMMAND_CHANGEPREFIX(sentMessage) {
     });
 
     if (sentMessage.message.author.id != ownerId) {
+
         consoleLoggingCommands(sentMessage, "ERROR: PERMS");
-        let errorEmbed = new MessageEmbed()
+
+        let setPrefixEmbed = new MessageEmbed()
             .setColor(config.COLOR.ERROR)
             .setTitle("Error!")
             .setDescription("You need to be the owner of this server to change the *LOCAL* prefix.")
-        return sentMessage.message.reply({embeds: [errorEmbed]});
+        return sentMessage.message.reply({embeds: [setPrefixEmbed]});
+
     };
 
     if (sentMessage.args.length !== 1) {
+
         consoleLoggingCommands(sentMessage, "ERROR: ARGS");
-        let errorEmbed = new MessageEmbed()
+
+        let setPrefixEmbed = new MessageEmbed()
             .setColor(config.COLOR.ERROR)
             .setTitle("Error!")
-            .setDescription("Please provide a valid prefix.\n\n*A prefix is a series of characters without any spaces.\nExample: **infbot/changeprefix newprefix!***")
-        return sentMessage.message.reply({embeds: [errorEmbed]});
+            .setDescription("Please provide a valid prefix.\n\n*A prefix is a series of characters without any spaces.*\nExample: `" + config.PREFIX.GLOBAL + "setprefix newprefix!`");
+        return sentMessage.message.reply({embeds: [setPrefixEmbed]});
+
     };
 
     await connection.query(
@@ -297,14 +451,82 @@ async function COMMAND_CHANGEPREFIX(sentMessage) {
         `
     );
 
-    consoleLoggingCommands(sentMessage, "SUCCESS");
     guildLocalPrefixes.set(sentMessage.message.guild.id, sentMessage.args[0]);
 
-    let changePrefixEmbed = new MessageEmbed()
+    consoleLoggingCommands(sentMessage, "SUCCESS");
+    
+    let setPrefixEmbed = new MessageEmbed()
         .setColor(config.COLOR.SUCCESS)
         .setTitle("Success!")
-        .setDescription(`You've successfully changed your *LOCAL* prefix to **${sentMessage.args[0]}**.`);
-    return sentMessage.message.reply({embeds: [changePrefixEmbed]});
+        .setDescription("You've successfully set your *LOCAL* prefix to `" + sentMessage.args[0] + "`.");
+    return sentMessage.message.reply({embeds: [setPrefixEmbed]});
+
+};
+
+async function COMMAND_STATUS(sentMessage) {
+
+    let guildCreatorChannel;
+    let guildCreatorChannelCategory;
+    await connection.query(
+        `
+        SELECT guildChannelCreator, guildChannelCreatorCategory
+        FROM guildconfig
+        WHERE guildId = '${sentMessage.message.guild.id}'
+        `
+    ).then(result => {
+
+        guildCreatorChannel = result[0][0].guildChannelCreator;
+        guildCreatorChannelCategory = result[0][0].guildChannelCreatorCategory;
+
+    });
+
+    if (guildCreatorChannel !== "None" && guildCreatorChannelCategory !== "None") {
+        
+        let statusEmbed = new MessageEmbed()
+            .setColor(config.COLOR.EVENT)
+            .setTitle("INFBOT Voice Channels are up and running!")
+            .setDescription("Enter the `" + config.AUTO_VC.CHANNEL_NAME + "` channel to get started.")
+        return sentMessage.message.reply({embeds: [statusEmbed]});
+
+    } else if (guildCreatorChannel === "None" && guildCreatorChannelCategory === "None") {
+
+        let statusEmbed = new MessageEmbed()
+            .setColor(config.COLOR.EVENT)
+            .setTitle("INFBOT Voice Channels aren't running on this server.")
+            .setDescription("If your an admin, use `" + config.PREFIX.GLOBAL + "setup` to initialize INFBOT Voice Channels.");
+        return sentMessage.message.reply({embeds: [statusEmbed]});
+
+    } else {
+
+        await connection.query(
+            `
+            UPDATE guildconfig
+            SET guildChannelCreatorCategory = 'None'
+            WHERE guildId = '${sentMessage.message.guild.id}'
+            `
+        );
+        await connection.query(
+            `
+            UPDATE guildconfig
+            SET guildChannelCreator = 'None'
+            WHERE guildId = '${sentMessage.message.guild.id}'
+            `
+        );
+        await connection.query(
+            `
+            DELETE
+            FROM guildchannels
+            WHERE guildId = '${sentMessage.message.guild.id}'
+            `
+        );
+
+        let statusEmbed = new MessageEmbed()
+            .setColor(config.COLOR.WARNING)
+            .setTitle("We've found an issue with your setup...")
+            .setDescription("It seems that INFBOT Voice Channels were partially setup on this server. This shouldn't happen. We've reset the setup process, therefore, if you're the server owner, use `" + config.PREFIX.GLOBAL + "setup` to re-initialize INFBOT Voice Channels. You may delete any residual channels if there are any.");
+        return sentMessage.message.reply({embeds: [statusEmbed]});
+
+    };
 
 };
 
@@ -322,87 +544,138 @@ async function COMMAND_SETUP(sentMessage) {
     });
 
     if (sentMessage.message.author.id != ownerId) {
+
         consoleLoggingCommands(sentMessage, "ERROR: PERMS");
-        return sentMessage.message.reply("You are not the owner of this server.");
+
+        let setupEmbed = new MessageEmbed()
+            .setColor(config.COLOR.ERROR)
+            .setTitle("You need to be the server owner to setup INFBOT Voice Channels.")
+        return sentMessage.message.reply({embeds: [setupEmbed]});
+
     };
 
     let channelCreator;
+    let channelCreatorCategory;
     await connection.query(
         `
-        SELECT guildChannelCreator
+        SELECT guildChannelCreator, guildChannelCreatorCategory
         FROM guildconfig
         WHERE guildId = '${sentMessage.message.guild.id}'
         `
     ).then(result => {
         channelCreator = result[0][0].guildChannelCreator;
+        channelCreatorCategory = result[0][0].guildChannelCreatorCategory;
     });
 
-    if (channelCreator !== "None") {
-        consoleLoggingCommands(sentMessage, "ERROR: ACTIVE");
-        return sentMessage.message.reply("INFBOT Voice Channels are already setup on this server.");
+    if (channelCreator !== "None" && channelCreatorCategory !== "None") {
+
+        consoleLoggingCommands(sentMessage, "WARN: ACTIVE");
+
+        let setupEmbed = new MessageEmbed()
+            .setColor(config.COLOR.WARNING)
+            .setTitle("INFBOT Voice Channels are already setup on this server.")
+        return sentMessage.message.reply({embeds: [setupEmbed]});
+
+    } else if (channelCreator === "None" && channelCreatorCategory === "None") {
+
+        try {
+
+            await sentMessage.message.guild.channels.create(
+                config.AUTO_VC.CATEGORY_NAME,
+                {
+                    type: "GUILD_CATEGORY",
+                }
+            ).then(async (c) => {
+
+                await connection.query(
+                    `
+                    UPDATE guildconfig
+                    SET guildChannelCreatorCategory = '${c.id}'
+                    WHERE guildId = '${c.guildId}'
+                    `
+                );
+                channelCreatorCategory = c.id;
+
+            });
+    
+            await sentMessage.message.guild.channels.create(
+                config.AUTO_VC.CHANNEL_NAME,
+                {
+                    type: "GUILD_VOICE",
+                    parent: channelCreatorCategory,
+                }
+            ).then(async (c) => {
+
+                await connection.query(
+                    `
+                    UPDATE guildconfig
+                    SET guildChannelCreator = '${c.id}'
+                    WHERE guildId = '${c.guildId}'
+                    `
+                );
+
+            });
+    
+            consoleLoggingCommands(sentMessage, "SUCCESS");
+
+            let setupEmbed = new MessageEmbed()
+                .setColor(config.COLOR.SUCCESS)
+                .setTitle("INFBOT Voice Channels are now up and running!")
+                .setDescription("Enter the `" + config.AUTO_VC.CHANNEL_NAME + "` channel to get started.")
+            return sentMessage.message.reply({embeds: [setupEmbed]});
+    
+        } catch (err) {
+            console.log(err);
+        };
+
+    } else {
+
+        await connection.query(
+            `
+            UPDATE guildconfig
+            SET guildChannelCreatorCategory = 'None'
+            WHERE guildId = '${sentMessage.message.guild.id}'
+            `
+        );
+        await connection.query(
+            `
+            UPDATE guildconfig
+            SET guildChannelCreator = 'None'
+            WHERE guildId = '${sentMessage.message.guild.id}'
+            `
+        );
+        await connection.query(
+            `
+            DELETE
+            FROM guildchannels
+            WHERE guildId = '${sentMessage.message.guild.id}'
+            `
+        );
+
+        consoleLoggingCommands(sentMessage, "WARN: PARTIAL ACTIVE")
+
+        let setupEmbed = new MessageEmbed()
+            .setColor(config.COLOR.WARNING)
+            .setTitle("We've found an issue with your setup...")
+            .setDescription("It seems that INFBOT Voice Channels were partially setup on this server. This shouldn't happen. We've reset the setup process, therefore, please use `" + config.PREFIX.GLOBAL + "setup` to re-initialize INFBOT Voice Channels.");
+        return sentMessage.message.reply({embeds: [setupEmbed]});
+
     };
-
-    try {
-
-        let channelCreatorCategory;
-        await sentMessage.message.guild.channels.create(
-            config.AUTO_VC.CATEGORY_NAME,
-            {
-                type: "GUILD_CATEGORY",
-            }
-        ).then(async (c) => {
-            await connection.query(
-                `
-                UPDATE guildconfig
-                SET guildChannelCreatorCategory = '${c.id}'
-                WHERE guildId = '${c.guildId}'
-                `
-            );
-            channelCreatorCategory = c.id;
-        });
-
-        await sentMessage.message.guild.channels.create(
-            config.AUTO_VC.CHANNEL_NAME,
-            {
-                type: "GUILD_VOICE",
-                parent: channelCreatorCategory,
-            }
-        ).then(async (c) => {
-            await connection.query(
-                `
-                UPDATE guildconfig
-                SET guildChannelCreator = '${c.id}'
-                WHERE guildId = '${c.guildId}'
-                `
-            );
-        });
-
-        consoleLoggingCommands(sentMessage, "SUCCESS");
-
-    } catch (err) {
-
-        console.log(err);
-
-    }
-
 };
 
 async function COMMAND_UNSETUP(sentMessage) {
 
-    let ownerId;
-    await connection.query(
-        `
-        SELECT guildOwner
-        FROM guilds
-        WHERE guildId = '${sentMessage.message.guild.id}'
-        `
-    ).then(result => {
-        ownerId = result[0][0].guildOwner;
-    });
+    let ownerId = sentMessage.message.guild.ownerId;
 
     if (sentMessage.message.author.id != ownerId) {
+
         consoleLoggingCommands(sentMessage, "ERROR: PERMS");
-        return sentMessage.message.reply("You are not the owner of this server.");
+
+        let unsetupEmbed = new MessageEmbed()
+            .setColor(config.COLOR.ERROR)
+            .setTitle("You need to be the server owner to remove INFBOT Voice Channels.")
+        return sentMessage.message.reply({embeds: [unsetupEmbed]});
+
     };
 
     let channelCreatorCategory;
@@ -428,34 +701,14 @@ async function COMMAND_UNSETUP(sentMessage) {
     });
 
     if (channelCreator === "None" && channelCreatorCategory === "None") {
-        consoleLoggingCommands(sentMessage, "ERROR: INACTIVE");
-        return sentMessage.message.reply("INFBOT Voice Channels aren't setup on this server.");
-    };
 
-    if ((channelCreator === "None" && channelCreatorCategory !== "None") || (channelCreator !== "None" && channelCreatorCategory === "None")) {
-        consoleLoggingCommands(sentMessage, "ERROR: PARTIAL ACTIVE");
-        await connection.query(
-            `
-            UPDATE guildconfig
-            SET guildChannelCreatorCategory = 'None'
-            WHERE guildId = '${sentMessage.message.guild.id}'
-            `
-        );
-        await connection.query(
-            `
-            UPDATE guildconfig
-            SET guildChannelCreator = 'None'
-            WHERE guildId = '${sentMessage.message.guild.id}'
-            `
-        );
-        await connection.query(
-            `
-            DELETE
-            FROM guildchannels
-            WHERE guildId = '${sentMessage.message.guild.id}'
-            `
-        );
-        return sentMessage.message.reply("INFBOT found that your server was partially setup for INFVCs. We've reset the setup process to avoid future bugs.");
+        consoleLoggingCommands(sentMessage, "WARN: INACTIVE");
+
+        let unsetupEmbed = new MessageEmbed()
+            .setColor(config.COLOR.EVENT)
+            .setTitle("INFBOT Voice Channels aren't running on this server.");
+        return sentMessage.message.reply({embeds: [unsetupEmbed]});
+
     };
 
     await connection.query(
@@ -482,86 +735,273 @@ async function COMMAND_UNSETUP(sentMessage) {
     
     sentMessage.message.guild.channels.cache.get(channelCreator).delete();
     sentMessage.message.guild.channels.cache.get(channelCreatorCategory).delete();
+
     consoleLoggingCommands(sentMessage, "SUCCESS");
-    return sentMessage.message.reply("INFBOT Voice Channels have been removed from this server.");
+
+    let unsetupEmbed = new MessageEmbed()
+        .setColor(config.COLOR.SUCCESS)
+        .setTitle("INFBOT Voice Channels have been removed from this server.");
+    return sentMessage.message.reply({embeds: [unsetupEmbed]});
             
 };
 
-client.on("voiceStateUpdate", async (oldState, newState) => {
+function COMMAND_CHANNELINFO(sentMessage) {
 
-    if (newState.channelId === oldState.channelId) return;
-
-    let channelCreator;
-    let channelCreatorCategory;
-    await connection.query(
-        `
-        SELECT *
-        FROM guildconfig
-        WHERE guildId = '${newState.guild.id}'
-        `
-    ).then(result => {
-        channelCreator = result[0][0].guildChannelCreator;
-        channelCreatorCategory = result[0][0].guildChannelCreatorCategory;
-    });
-
-    if (newState.channelId === channelCreator) {
-        await newState.guild.channels.create(
-            newState.member.user.username,
-            {
-                type: "GUILD_VOICE",
-                parent: channelCreatorCategory,
-            }
-        ).then(async (c) => {
-            newState.member.voice.setChannel(c.id);
-            await connection.query(
-                `
-                INSERT INTO guildchannels (guildId, channelId)
-                VALUES ('${newState.guild.id}', '${c.id}')
-                `
-            );
-        });
+    
+    if (!sentMessage.message.member.voice.channel) {
+        
+        consoleLoggingCommands(sentMessage, "WARN: NO VC");
+        
+        let channelInfoEmbed = new MessageEmbed()
+        .setColor(config.COLOR.WARNING)
+        .setTitle("You need to be in a voice channel.");
+        return sentMessage.message.reply({embeds: [channelInfoEmbed]});
+        
     };
     
+    let channel = sentMessage.message.member.voice.channel
+
+    consoleLoggingCommands(sentMessage)
+
+    let userLimit;
+    if (channel.userLimit === 0) userLimit = "Unlimited";
+    else userLimit = channel.userLimit;
+
+    let channelInfoEmbed = new MessageEmbed()
+        .setColor(config.COLOR.EVENT)
+        .setThumbnail(sentMessage.message.guild.iconURL)
+        .setTitle("Here's some information about this voice channel.")
+        .addFields(
+            {name: "Name:", value: `${channel.name}`},
+            {name: "ID:", value: `${channel.id}`},
+            {name: "Bitrate:", value: `${Math.round(channel.bitrate / 1000)}kbps`},
+            {name: "User Limit:", value: `${channel.userLimit}`},
+        );
+    return sentMessage.message.reply({embeds: [channelInfoEmbed]});
+
+};
+
+async function COMMAND_SETBITRATE(sentMessage) {
+
     let autoChannels = [];
     await connection.query(
         `
         SELECT channelId
         FROM guildchannels
-        WHERE guildId = '${newState.guild.id}'
+        WHERE guildId = '${sentMessage.message.guild.id}'
         `
     ).then(result => {
-        for (let i = 0; i < result[0].length; i++) {
-            autoChannels.push(result[0][i].channelId);
-        }
+
+        result[0].forEach((c) => {
+            autoChannels.push(c.channelId);
+        })
+
     });
 
-    for (let i = 0; i < autoChannels.length; i++) {
-        if (oldState.channelId === autoChannels[i]) {
-            let autoChannel = oldState.guild.channels.cache.get(autoChannels[i]);
-            if (autoChannel.members.size < 1) {
-                try {
-                    autoChannel.delete();
-                    await connection.query(
-                        `
-                        DELETE
-                        FROM guildchannels
-                        WHERE channelId = '${autoChannel.id}'
-                        `
-                    );
-                } catch (err) {
-                    console.log(err);
-                }
-            };
-        };
+    if (!sentMessage.message.member.voice.channel || !autoChannels.includes(sentMessage.message.member.voice.channel.id)) {
+        
+        consoleLoggingCommands(sentMessage, "WARN: NO INFVC");
+        
+        let setBitrateEmbed = new MessageEmbed()
+            .setColor(config.COLOR.WARNING)
+            .setTitle("You need to be in an INFBOT Voice Channel.");
+        return sentMessage.message.reply({embeds: [setBitrateEmbed]});
+        
     };
 
-});
+    let maxBitrate = 96;
+    switch (sentMessage.message.guild.premiumTier) {
+        case "NONE": maxBitrate = 96; break;
+        case "TIER_1": maxBitrate = 128; break;
+        case "TIER_2": maxBitrate = 256; break;
+        case "TIER_3": maxBitrate = 384; break;
+    };
+
+    if (sentMessage.args.length !== 1 || isNaN(sentMessage.args[0]) || sentMessage.args[0] < 8 || sentMessage.args[0] > maxBitrate) {
+
+        consoleLoggingCommands(sentMessage, "ERROR: ARGS");
+
+        let setBitrateEmbed = new MessageEmbed()
+            .setColor(config.COLOR.ERROR)
+            .setTitle("Error!")
+            .setDescription("Please provide a valid bitrate.\n\n*The bitrate is a number between `8`kbps and `" + maxBitrate + "`kbps.*\nExample: `" + config.PREFIX.GLOBAL + "setbitrate 96`");
+        return sentMessage.message.reply({embeds: [setBitrateEmbed]});
+
+    };
+
+    await sentMessage.message.member.voice.channel.setBitrate(Math.round(sentMessage.args[0]) * 1000);
+    
+    consoleLoggingCommands(sentMessage, `SUCCESS: ${sentMessage.message.member.voice.channel.bitrate / 1000}KBPS`);
+
+    let setBitrateEmbed = new MessageEmbed()
+        .setColor(config.COLOR.SUCCESS)
+        .setTitle(`Your channel's bitrate is now set to ${sentMessage.message.member.voice.channel.bitrate / 1000}kbps.`);
+    return sentMessage.message.reply({embeds: [setBitrateEmbed]});
+
+};
+
+async function COMMAND_SETUSERLIMIT(sentMessage) {
+
+    let autoChannels = [];
+    await connection.query(
+        `
+        SELECT channelId
+        FROM guildchannels
+        WHERE guildId = '${sentMessage.message.guild.id}'
+        `
+    ).then(result => {
+
+        result[0].forEach((c) => {
+            autoChannels.push(c.channelId);
+        })
+
+    });
+
+    if (!sentMessage.message.member.voice.channel || !autoChannels.includes(sentMessage.message.member.voice.channel.id)) {
         
+        consoleLoggingCommands(sentMessage, "WARN: NO INFVC");
+        
+        let setUserLimitEmbed = new MessageEmbed()
+            .setColor(config.COLOR.WARNING)
+            .setTitle("You need to be in an INFBOT Voice Channel.");
+        return sentMessage.message.reply({embeds: [setUserLimitEmbed]});
+        
+    };
+
+    if (sentMessage.args.length !== 1 || isNaN(sentMessage.args[0]) || sentMessage.args[0] < 0 || sentMessage.args[0] > 99) {
+
+        consoleLoggingCommands(sentMessage, "ERROR: ARGS");
+
+        let setUserLimitEmbed = new MessageEmbed()
+            .setColor(config.COLOR.ERROR)
+            .setTitle("Error!")
+            .setDescription("Please provide a valid userlimit.\n\n*The userlimit is a number between `0` (unlimited) and `99` users.*\nExample: `" + config.PREFIX.GLOBAL + "setuserlimit 5`");
+        return sentMessage.message.reply({embeds: [setUserLimitEmbed]});
+
+    };
+
+    await sentMessage.message.member.voice.channel.setUserLimit(Math.round(sentMessage.args[0]));
+    
+    consoleLoggingCommands(sentMessage, `SUCCESS: ${sentMessage.message.member.voice.channel.userLimit} USERS`);
+    
+    let userLimit = "";
+    if (sentMessage.message.member.voice.channel.userLimit == 0) userLimit = "an unlimited amount of users";
+    else if (sentMessage.message.member.voice.channel.userLimit == 1) userLimit = "1 user";
+    else userLimit = `${sentMessage.message.member.voice.channel.userLimit} users`;
+    
+    let setUserLimitEmbed = new MessageEmbed()
+        .setColor(config.COLOR.SUCCESS)
+        .setTitle(`Your channel's userlimit is now set to ${userLimit}.`);
+    return sentMessage.message.reply({embeds: [setUserLimitEmbed]});
+
+};
+
+async function COMMAND_LOCK(sentMessage) {
+
+    let autoChannels = [];
+    await connection.query(
+        `
+        SELECT channelId
+        FROM guildchannels
+        WHERE guildId = '${sentMessage.message.guild.id}'
+        `
+    ).then(result => {
+
+        result[0].forEach((c) => {
+            autoChannels.push(c.channelId);
+        })
+
+    });
+
+    if (!sentMessage.message.member.voice.channel || !autoChannels.includes(sentMessage.message.member.voice.channel.id)) {
+        
+        consoleLoggingCommands(sentMessage, "WARN: NO INFVC");
+        
+        let lockEmbed = new MessageEmbed()
+            .setColor(config.COLOR.WARNING)
+            .setTitle("You need to be in an INFBOT Voice Channel.");
+        return sentMessage.message.reply({embeds: [lockEmbed]});
+        
+    };
+
+    await sentMessage.message.guild.channels.cache.get(sentMessage.message.member.voice.channel.id).permissionOverwrites.edit(
+        sentMessage.message.guild.id, {
+            CONNECT: false
+        }
+    );
+
+    consoleLoggingCommands(sentMessage, "SUCCESS");
+
+    let lockEmbed = new MessageEmbed()
+        .setColor(config.COLOR.SUCCESS)
+        .setTitle("You've successfully locked your channel.")
+        .setDescription("Use `" + config.PREFIX.GLOBAL + "unlock` to unlock it.");
+    return sentMessage.message.reply({embeds: [lockEmbed]});
+
+};
+
+async function COMMAND_UNLOCK(sentMessage) {
+
+    let autoChannels = [];
+    await connection.query(
+        `
+        SELECT channelId
+        FROM guildchannels
+        WHERE guildId = '${sentMessage.message.guild.id}'
+        `
+    ).then(result => {
+
+        result[0].forEach((c) => {
+            autoChannels.push(c.channelId);
+        })
+
+    });
+
+    if (!sentMessage.message.member.voice.channel || !autoChannels.includes(sentMessage.message.member.voice.channel.id)) {
+        
+        consoleLoggingCommands(sentMessage, "WARN: NO INFVC");
+        
+        let unlockEmbed = new MessageEmbed()
+            .setColor(config.COLOR.WARNING)
+            .setTitle("You need to be in an INFBOT Voice Channel.");
+        return sentMessage.message.reply({embeds: [unlockEmbed]});
+        
+    };
+
+    await sentMessage.message.guild.channels.cache.get(sentMessage.message.member.voice.channel.id).permissionOverwrites.edit(
+        sentMessage.message.guild.id, {
+            CONNECT: true
+        }
+    );
+
+    consoleLoggingCommands(sentMessage, "SUCCESS");
+
+    let unlockEmbed = new MessageEmbed()
+        .setColor(config.COLOR.SUCCESS)
+        .setTitle("You've successfully unlocked your channel.");
+    return sentMessage.message.reply({embeds: [unlockEmbed]});
+
+};
+
 function consoleLoggingCommands(sentMessage, result = "") {
 
     if (result.startsWith("SUCCESS")) result = `[${colors.green(result)}]`;
     else if (result.startsWith("ERROR")) result = `[${colors.red(result)}]`;
+    else if (result.startsWith("WARN")) result = `[${colors.yellow(result)}]`;
     return console.log(colors.white(`${getDateTime()} >>> A user executed the ${colors.magenta(sentMessage.command)} command. ${result}`));
+
+};
+
+function consoleLoggingAutoVoice(state) {
+
+    let result = "";
+    switch (state) {
+        case "creating": result = "A user is creating a new voice channel..."; break;
+        case "created": result = "Voice channel created successfully."; break;
+        case "deleting": result = "Deleting an empty voice channel..."; break;
+        case "deleted": result = "Voice channel deleted successfully."; break;
+    };
+    return console.log(colors.yellow(`${getDateTime()} >>> ${result}`));
 
 };
 
@@ -569,6 +1009,21 @@ function getDateTime() {
 
     let getDate = new Date();
     return `${getDate.toLocaleString()}`;
+
+};
+
+function formatFullDate(date) {
+
+    let options = {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        second: "2-digit",
+        timeZoneName: "short"
+    };
+    return date.toLocaleDateString(undefined, options);
 
 };
 
