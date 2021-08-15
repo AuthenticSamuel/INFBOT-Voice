@@ -23,6 +23,9 @@ const client = new Client({
 const colors = require("colors");
 const config = require("./config.json");
 const guildLocalPrefixes = new Map();
+const guildCreatorChannels = new Map();
+const guildAutoChannels = new Map();
+const temporary = [];
 
 function getDateTime() {
     let getDate = new Date();
@@ -412,7 +415,71 @@ async function COMMAND_UNSETUP(sentMessage) {
             
 };
 
+client.on("voiceStateUpdate", async (oldState, newState) => {
 
+    if (newState.channelId === oldState.channelId) return;
+
+    let channelCreator;
+    let channelCreatorCategory;
+    await connection.query(
+        `
+        SELECT *
+        FROM guildconfig
+        WHERE guildId = '${newState.guild.id}'
+        `
+    ).then(result => {
+        channelCreator = result[0][0].guildChannelCreator;
+        channelCreatorCategory = result[0][0].guildChannelCreatorCategory;
+    });
+
+    if (newState.channelId === channelCreator) {
+        await newState.guild.channels.create(
+            newState.member.user.username,
+            {
+                type: "GUILD_VOICE",
+                parent: channelCreatorCategory,
+            }
+        ).then(async (c) => {
+            newState.member.voice.setChannel(c.id);
+            await connection.query(
+                `
+                INSERT INTO guildchannels (guildId, channelId)
+                VALUES ('${newState.guild.id}', '${c.id}')
+                `
+            );
+        });
+    };
+    
+    let autoChannels = [];
+    await connection.query(
+        `
+        SELECT channelId
+        FROM guildchannels
+        WHERE guildId = '${newState.guild.id}'
+        `
+    ).then(result => {
+        for (let i = 0; i < result[0].length; i++) {
+            autoChannels.push(result[0][i].channelId);
+        }
+    });
+
+    for (let i = 0; i < autoChannels.length; i++) {
+        if (oldState.channelId === autoChannels[i]) {
+            let autoChannel = oldState.guild.channels.cache.get(autoChannels[i]);
+            if (autoChannel.members.size < 1) {
+                autoChannel.delete();
+                await connection.query(
+                    `
+                    DELETE
+                    FROM guildchannels
+                    WHERE channelId = '${autoChannel.id}'
+                    `
+                );
+            };
+        };
+    };
+
+});
         
 function consoleLoggingCommands(sentMessage, result = "") {
 
