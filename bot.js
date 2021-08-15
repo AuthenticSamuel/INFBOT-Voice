@@ -237,10 +237,12 @@ function COMMAND_BOT(message) {
                 {name: "Support Server", value: config.SUPPORT_DISCORD_SERVER, inline: false},
                 {name: `Last Update [${config.PATCH.DATE}]`, value: config.PATCH.NOTES, inline: false}
             );
-            message.reply({embeds: [botEmbed]});
-    })
+        return message.reply({embeds: [botEmbed]});
+    });
 
 };
+
+
 
 function COMMAND_PREFIX(sentMessage) {
 
