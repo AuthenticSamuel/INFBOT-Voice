@@ -6,7 +6,7 @@
 */
 
 require("dotenv").config();
-const { Client, Intents, Options, MessageReaction, MessageEmbed } = require("discord.js");
+const { Client, Intents, Options, MessageReaction, MessageEmbed, Message } = require("discord.js");
 const client = new Client({
     intents: [
         Intents.FLAGS.GUILDS,
@@ -181,15 +181,17 @@ client.on("messageCreate", async (message) => {
         let MessageProperties = function(message, usedPrefix, usedCommand, providedArgs = "") {
             this.message = message,
             this.prefix = usedPrefix,
-            this.command = usedCommand,
+            this.command = usedCommand.toLowerCase(),
             this.args = providedArgs
         };
 
         let sentMessage = new MessageProperties(message, usedPrefix, usedCommand, args);
 
         switch (sentMessage.command) {
-            case "help": COMMAND_HELP(message); break;
-            case "bot": COMMAND_BOT(message); break;
+            case "help": COMMAND_HELP(sentMessage); break;
+            case "bot": COMMAND_BOT(sentMessage); break;
+            case "prefix": COMMAND_PREFIX(sentMessage); break;
+            case "changeprefix": COMMAND_CHANGEPREFIX(sentMessage); break;
             case "setup": COMMAND_SETUP(sentMessage); break;
             case "unsetup": COMMAND_UNSETUP(sentMessage); break;
         };
@@ -198,9 +200,10 @@ client.on("messageCreate", async (message) => {
 
 });
 
-function COMMAND_HELP(message) {
+function COMMAND_HELP(sentMessage) {
 
-    message.reply("help");
+    sentMessage.message.reply("help");
+    consoleLoggingCommands(sentMessage);
 
 };
 
@@ -236,6 +239,70 @@ function COMMAND_BOT(message) {
             );
             message.reply({embeds: [botEmbed]});
     })
+
+};
+
+function COMMAND_PREFIX(sentMessage) {
+
+    let prefixEmbed = new MessageEmbed()
+        .setColor(config.COLOR.EVENT)
+        .setTitle("INFBOT Command Prefixes")
+        .setDescription("Prefixes are used when you want to execute INFBOT commands. There is a *GLOBAL* one which is manually set by the developer and a *LOCAL* one that admins can change on a server-to-server basis with the **infbot/changeprefix** command.")
+        .addFields(
+            {name: "GLOBAL", value: config.PREFIX.GLOBAL, inline: true},
+            {name: "LOCAL", value: guildLocalPrefixes.get(sentMessage.message.guild.id), inline: true}
+        );
+    return sentMessage.message.reply({embeds: [prefixEmbed]});
+
+};
+
+async function COMMAND_CHANGEPREFIX(sentMessage) {
+
+    let ownerId;
+    await connection.query(
+        `
+        SELECT guildOwner
+        FROM guilds
+        WHERE guildId = '${sentMessage.message.guild.id}'
+        `
+    ).then(result => {
+        ownerId = result[0][0].guildOwner;
+    });
+
+    if (sentMessage.message.author.id != ownerId) {
+        consoleLoggingCommands(sentMessage, "ERROR: PERMS");
+        let errorEmbed = new MessageEmbed()
+            .setColor(config.COLOR.ERROR)
+            .setTitle("Error!")
+            .setDescription("You need to be the owner of this server to change the *LOCAL* prefix.")
+        return sentMessage.message.reply({embeds: [errorEmbed]});
+    };
+
+    if (sentMessage.args.length !== 1) {
+        consoleLoggingCommands(sentMessage, "ERROR: ARGS");
+        let errorEmbed = new MessageEmbed()
+            .setColor(config.COLOR.ERROR)
+            .setTitle("Error!")
+            .setDescription("Please provide a valid prefix.\n\n*A prefix is a series of characters without any spaces.\nExample: **infbot/changeprefix newprefix!***")
+        return sentMessage.message.reply({embeds: [errorEmbed]});
+    };
+
+    await connection.query(
+        `
+        UPDATE guildconfig
+        SET guildLocalPrefix = '${sentMessage.args[0]}'
+        WHERE guildId = '${sentMessage.message.guild.id}'
+        `
+    );
+
+    consoleLoggingCommands(sentMessage, "SUCCESS");
+    guildLocalPrefixes.set(sentMessage.message.guild.id, sentMessage.args[0]);
+
+    let changePrefixEmbed = new MessageEmbed()
+        .setColor(config.COLOR.SUCCESS)
+        .setTitle("Success!")
+        .setDescription(`You've successfully changed your *LOCAL* prefix to **${sentMessage.args[0]}**.`);
+    return sentMessage.message.reply({embeds: [changePrefixEmbed]});
 
 };
 
@@ -490,9 +557,9 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
         
 function consoleLoggingCommands(sentMessage, result = "") {
 
-    if (result.startsWith("SUCCESS")) result = colors.green(result)
-    else if (result.startsWith("ERROR")) result = colors.red(result)
-    return console.log(colors.white(`${getDateTime()} >>> A user executed the ${colors.magenta(sentMessage.command)} command. [${result}]`));
+    if (result.startsWith("SUCCESS")) result = `[${colors.green(result)}]`;
+    else if (result.startsWith("ERROR")) result = `[${colors.red(result)}]`;
+    return console.log(colors.white(`${getDateTime()} >>> A user executed the ${colors.magenta(sentMessage.command)} command. ${result}`));
 
 };
 
