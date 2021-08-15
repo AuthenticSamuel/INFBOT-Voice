@@ -215,12 +215,6 @@ function COMMAND_BOT(message) {
     let seconds = Math.floor(totalSeconds % 60);
     let uptime = `${totalDays}:${leadingZeroes(totalHours)}:${leadingZeroes(totalMinutes)}:${leadingZeroes(seconds)}`;
     
-    function leadingZeroes(value) {
-        let valueString = value + "";
-        if (valueString.length < 2) return "0" + valueString;
-        else return valueString;
-    };
-    
     message.channel.send("Getting latency values...").then(async (msg) => {
         msg.delete();
         let botEmbed = new MessageEmbed()
@@ -496,18 +490,25 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
         
 function consoleLoggingCommands(sentMessage, result = "") {
 
-    if (result.startsWith("SUCCESS")) {
-        result = colors.green(result)
-    } else if (result.startsWith("ERROR")) {
-        result = colors.red(result)
-    }
-    console.log(colors.white(`${getDateTime()} >>> A user executed the ${colors.magenta(sentMessage.command)} command. [${result}]`));
+    if (result.startsWith("SUCCESS")) result = colors.green(result)
+    else if (result.startsWith("ERROR")) result = colors.red(result)
+    return console.log(colors.white(`${getDateTime()} >>> A user executed the ${colors.magenta(sentMessage.command)} command. [${result}]`));
 
 };
 
 function getDateTime() {
+
     let getDate = new Date();
     return `${getDate.toLocaleString()}`;
+
+};
+
+function leadingZeroes(value) {
+
+    let valueString = value + "";
+    if (valueString.length < 2) return "0" + valueString;
+    else return valueString;
+    
 };
 
 (async () => {
