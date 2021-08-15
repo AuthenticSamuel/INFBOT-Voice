@@ -332,11 +332,11 @@ async function COMMAND_HELP(sentMessage) {
             {name: "Channel Controls", value: "These are commands that can be used when you've in a regular VC or in a INFVC (INFBOT Voice Channel). Commands marked with asterisks (*) can only be used in INFVCs.", inline: false},
             
             {name: `${config.PREFIX.GLOBAL}channelinfo`, value: "```ini\n[View some info about the VC you're currently in.]```", inline: true},
-            {name: `${config.PREFIX.GLOBAL}setbitrate`, value: "```ini\n[Change the bitrate of the INFVC you're currently in.]```", inline: true},
-            {name: `${config.PREFIX.GLOBAL}setuserlimit`, value: "```ini\n[Change the user limit of the INFVC you're currently in.]```", inline: true},
+            {name: `${config.PREFIX.GLOBAL}setbitrate *`, value: "```ini\n[Change the bitrate of the INFVC you're currently in.]```", inline: true},
+            {name: `${config.PREFIX.GLOBAL}setuserlimit *`, value: "```ini\n[Change the user limit of the INFVC you're currently in.]```", inline: true},
 
-            {name: `${config.PREFIX.GLOBAL}lock`, value: "```ini\n[Make the INFVC you're currently in private (users can no longer join).]```", inline: true},
-            {name: `${config.PREFIX.GLOBAL}unlock`, value: "```ini\n[Make the INFVC you're currently in public (default behavior).]```", inline: true},
+            {name: `${config.PREFIX.GLOBAL}lock *`, value: "```ini\n[Make the INFVC you're currently in private (users can no longer join).]```", inline: true},
+            {name: `${config.PREFIX.GLOBAL}unlock *`, value: "```ini\n[Make the INFVC you're currently in public (default behavior).]```", inline: true},
 
             // template:  {name: `${config.PREFIX.GLOBAL}`, value: "```ini\n[]```", inline: },
         );
