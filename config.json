@@ -12,8 +12,8 @@
         "Poux7#0001"
     ],
     "PATCH": {
-        "NOTES": "INFBOT V3.0.0 in development. Please be patient.",
-        "DATE": "15/08/21 : 00:00 UTC+2"
+        "NOTES": "INFBOT V3.0.0's code is finished. Welcome back, INFBOT!\n• Upgraded discord.js's version to 13.1\n• Upgraded Node.js's version to 16.6.2",
+        "DATE": "16/08/21 : 03:00 UTC+2"
     },
     "AUTO_VC": {
         "CHANNEL_NAME": "➕ New Channel",

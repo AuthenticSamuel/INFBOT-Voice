@@ -1,7 +1,7 @@
 /*
         INFBOT is a discord.js bot. It helps discord users create voice channels
         automatically then delete them when they are no longer required.
-        A server admin just needs to initialize the bot then everything
+        The server owner just needs to initialize the bot then everything
         is handled automatically by INFBOT.
 */
 
@@ -23,9 +23,6 @@ const client = new Client({
 const colors = require("colors");
 const config = require("./config.json");
 const guildLocalPrefixes = new Map();
-const guildCreatorChannels = new Map();
-const guildAutoChannels = new Map();
-const temporary = [];
 
 for (let i = 0; i < 10; i++) console.log("");
 console.log(colors.cyan(`${getDateTime()} >>> Starting INFBOT...`));
@@ -190,7 +187,7 @@ client.on("messageCreate", async (message) => {
         switch (sentMessage.command) {
 
             // Basic commands
-            case "help": COMMAND_HELP(sentMessage); break; //
+            case "help": COMMAND_HELP(sentMessage); break;
             case "bot": COMMAND_BOT(sentMessage); break;
             case "user": COMMAND_USER(sentMessage); break;
             case "server": COMMAND_SERVER(sentMessage); break;
