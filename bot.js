@@ -302,6 +302,58 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
 
 });
 
+client.on("messageReactionAdd", async (reaction, user) => {         // Only the Infernal Discord Server currently supports Reaction Roles
+
+    if (reaction.message.partial) await reaction.message.fetch();
+    if (reaction.partial) await reaction.fetch();
+
+    if (user.bot || !reaction.message.guild) return;
+
+    if (reaction.message.channel.id === config.INFERNAL.REACTION_ROLES_CHANNEL) {
+
+        switch (reaction.emoji.id) {
+
+            case "650436228059234313": await reaction.message.guild.members.cache.get(user.id).roles.add("649915251470630912"); break;
+            case "687941410019737745": await reaction.message.guild.members.cache.get(user.id).roles.add("687926881752055808"); break;
+            case "655107911374209066": await reaction.message.guild.members.cache.get(user.id).roles.add("649917383900790805"); break;
+            case "655106909472292874": await reaction.message.guild.members.cache.get(user.id).roles.add("649915298303967233"); break;
+            case "728612521581215804": await reaction.message.guild.members.cache.get(user.id).roles.add("728612618612244513"); break;
+            case "726857979047182357": await reaction.message.guild.members.cache.get(user.id).roles.add("726852875426201650"); break;
+            case "687941409919074358": await reaction.message.guild.members.cache.get(user.id).roles.add("687640075512840196"); break;
+            case "726855950614397011": await reaction.message.guild.members.cache.get(user.id).roles.add("726852871974551643"); break;
+
+        };
+
+    };
+
+});
+
+client.on("messageReactionRemove", async (reaction, user) => {      // Only the Infernal Discord Server currently supports Reaction Roles
+
+    if (reaction.message.partial) await reaction.message.fetch();
+    if (reaction.partial) await reaction.fetch();
+
+    if (user.bot || !reaction.message.guild) return;
+
+    if (reaction.message.channel.id === config.INFERNAL.REACTION_ROLES_CHANNEL) {
+
+        switch (reaction.emoji.id) {
+
+            case "650436228059234313": await reaction.message.guild.members.cache.get(user.id).roles.remove("649915251470630912"); break;
+            case "687941410019737745": await reaction.message.guild.members.cache.get(user.id).roles.remove("687926881752055808"); break;
+            case "655107911374209066": await reaction.message.guild.members.cache.get(user.id).roles.remove("649917383900790805"); break;
+            case "655106909472292874": await reaction.message.guild.members.cache.get(user.id).roles.remove("649915298303967233"); break;
+            case "728612521581215804": await reaction.message.guild.members.cache.get(user.id).roles.remove("728612618612244513"); break;
+            case "726857979047182357": await reaction.message.guild.members.cache.get(user.id).roles.remove("726852875426201650"); break;
+            case "687941409919074358": await reaction.message.guild.members.cache.get(user.id).roles.remove("687640075512840196"); break;
+            case "726855950614397011": await reaction.message.guild.members.cache.get(user.id).roles.remove("726852871974551643"); break;
+
+        };
+
+    };
+
+});
+
 async function COMMAND_HELP(sentMessage) {
 
     let help1Embed = new MessageEmbed()
