@@ -1,5 +1,5 @@
 <h1 align="center">▶ INFBOT Voice Channels V3 ◀</h1>
-<h2 align="center">V3.0.0 finished ✅. Not online yet ⌚.</h2><br>
+<h2 align="center">✅ V3.0.0 finished and now online! ✅</h2><br>
 
 <div>
   <h2>Welcome to INFBOT's GitHub page!</h2>
