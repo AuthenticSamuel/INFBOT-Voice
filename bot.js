@@ -417,8 +417,8 @@ async function COMMAND_HELP(sentMessage) {
 
 function COMMAND_BOT(sentMessage) {
 
-    consoleLoggingCommands(sentMessage)
-
+    consoleLoggingCommands(sentMessage);
+        
     let totalSeconds = (client.uptime / 1000);
     let totalDays = Math.floor(totalSeconds / 86400);
     totalSeconds %= 86400;

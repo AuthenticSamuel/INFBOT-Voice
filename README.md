@@ -1,5 +1,5 @@
 <h1 align="center">▶ INFBOT Voice Channels V3 ◀</h1>
-<h2 align="center">V3.0.0 finished ✅. Not online yet ⌚.</h2><br>
+<h2 align="center">✅ V3.0.0 finished and now online! ✅</h2><br>
 
 <div>
   <h2>Welcome to INFBOT's GitHub page!</h2>
@@ -51,7 +51,7 @@
 <div>
   <h2>Some information</h2>
   <p>I've intentionally untracked a couple files/folders so I don't lose my mind, but here are the variable names that I used so you can recreate it with your own stuff.</p>
-  <p><em>.env</em> ➡ this file contains a few secrets:</p>
+  <p>📁 <em>.env</em> ➡ this file contains a few secrets:</p>
   <ul>
     <li>TOKEN ➖ Discord Token</li>
     <li>DATABASE_HOST ➖ Database hostname</li>
@@ -59,5 +59,5 @@
     <li>DATABASE_PASS ➖ Database password</li>
     <li>DATABASE_NAME ➖ Database name</li>
   </ul>
-  <p><em>node_modules</em> ➡ this folder contains all of the node modules. I haven't included this as you can install the same ones with the libraries above.
+  <p>📂 <em>node_modules</em> ➡ this folder contains all of the node modules. I haven't included this as you can install the same ones with the libraries above.
 </div>
