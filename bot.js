@@ -415,7 +415,9 @@ async function COMMAND_HELP(sentMessage) {
 
 };
 
-function COMMAND_BOT(message) {
+function COMMAND_BOT(sentMessage) {
+
+    consoleLoggingCommands(sentMessage)
 
     let totalSeconds = (client.uptime / 1000);
     let totalDays = Math.floor(totalSeconds / 86400);
@@ -426,7 +428,7 @@ function COMMAND_BOT(message) {
     let seconds = Math.floor(totalSeconds % 60);
     let uptime = `${totalDays}:${leadingZeroes(totalHours)}:${leadingZeroes(totalMinutes)}:${leadingZeroes(seconds)}`;
     
-    message.channel.send("Getting latency values...").then(async (msg) => {
+    sentMessage.message.channel.send("Getting latency values...").then(async (msg) => {
         msg.delete();
         let botEmbed = new MessageEmbed()
             .setColor(config.COLOR.EVENT)
@@ -435,7 +437,7 @@ function COMMAND_BOT(message) {
             .addFields(
                 {name: "Uptime", value: uptime, inline: true},
                 {name: "Developer", value: "Zenyth#0001", inline: true},
-                {name: "Latency", value: `Bot: ${msg.createdTimestamp - message.createdTimestamp}ms\nAPI: ${Math.round(client.ws.ping)}ms`, inline: true},
+                {name: "Latency", value: `Bot: ${msg.createdTimestamp - sentMessage.message.createdTimestamp}ms\nAPI: ${Math.round(client.ws.ping)}ms`, inline: true},
                 {name: "Version", value: config.VERSION.INFBOT, inline: true},
                 {name: "Node JS", value: config.VERSION.NODEJS, inline: true},
                 {name: "Discord JS", value: config.VERSION.DISCORDJS, inline: true},
@@ -443,9 +445,10 @@ function COMMAND_BOT(message) {
                 {name: "Servers", value: `${client.guilds.cache.size} servers`, inline: true},
                 {name: "Channels", value: `${client.channels.cache.filter((c) => c.type !== "GUILD_CATEGORY").size} channels`, inline: true},
                 {name: "Support Server", value: config.SUPPORT_DISCORD_SERVER, inline: false},
+                {name: "Source Code", value: config.CODE, inline: false},
                 {name: `Last Update [${config.PATCH.DATE}]`, value: config.PATCH.NOTES, inline: false}
             );
-        return message.reply({embeds: [botEmbed]});
+        return sentMessage.message.reply({embeds: [botEmbed]});
     });
 
 };
@@ -453,20 +456,20 @@ function COMMAND_BOT(message) {
 function COMMAND_USER(sentMessage) {
 
     consoleLoggingCommands(sentMessage)
-
+    
     let member = sentMessage.message.mentions.members.first() || sentMessage.message.member
     let user = sentMessage.message.mentions.users.first() || sentMessage.message.author
-
+    
     let userEmbed = new MessageEmbed()
-        .setColor(config.COLOR.EVENT)
-        .setThumbnail(user.avatarURL())
-        .setTitle("User Information:")
-        .setDescription("Here's some information about this user")
-        .addFields(
-            {name: "Username:", value: `${user.username}#${user.discriminator}`},
-            {name: "ID:", value: `${user.id}`},
-            {name: "Joined this server:", value: `${formatFullDate(member.joinedAt)}`},
-            {name: "Joined Discord:", value: `${formatFullDate(user.createdAt)}`},
+    .setColor(config.COLOR.EVENT)
+    .setThumbnail(user.avatarURL())
+    .setTitle("User Information:")
+    .setDescription("Here's some information about this user")
+    .addFields(
+        {name: "Username:", value: `${user.username}#${user.discriminator}`},
+        {name: "ID:", value: `${user.id}`},
+        {name: "Joined this server:", value: `${formatFullDate(member.joinedAt)}`},
+        {name: "Joined Discord:", value: `${formatFullDate(user.createdAt)}`},
         );
     return sentMessage.message.reply({embeds: [userEmbed]})
 
