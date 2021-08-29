@@ -1,7 +1,7 @@
 {
     "VERSION": {
         "INFBOT": "3.0.1",
-        "NODEJS": "16.6.2",
+        "NODEJS": "16.8.0",
         "DISCORDJS": "13.1.0"
     },
     "CODE": "https://github.com/INF-Zenyth/INFBOT",
