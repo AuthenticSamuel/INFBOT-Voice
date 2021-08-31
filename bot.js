@@ -394,14 +394,14 @@ async function COMMAND_HELP(sentMessage) {
         .setColor(config.COLOR.EVENT)
         .setTitle("INFBOT | Additionnal Help")
         .setDescription("Do you need any additionnal help? Do you have any questions?")
-        .addField("Head over to our Discord Server:", "[Infernal Discord Server](https://discord.gg/jwEp6VX)");
+        .addField("Head over to our Discord Server:", `[Infernal Discord Server](${config.DEVELOPER_DISCORD_SERVER})`);
 
     let help3Embed = new MessageEmbed()
         .setColor(config.COLOR.EVENT)
         .setTitle("INFBOT | Invite & Vote")
         .setDescription("Don't forget to add this bot to your server or upvote it if you like it!")
-        .addField("Want to use INFBOT on your own server?", "[Invite INFBOT to your server](https://discord.com/oauth2/authorize?client_id=732316684496404521&scope=bot&permissions=17047568)")
-        .addField("Head over to our Top.gg page:", "[Vote on Top.gg](https://top.gg/bot/732316684496404521)")
+        .addField("Want to use INFBOT on your own server?", `[Invite INFBOT to your server](${config.INVITE})`)
+        .addField("Head over to our Top.gg page:", `[Vote on Top.gg](${config.TOP_GG})`)
         .setTimestamp()
         .setFooter(`INFBOT by Zenyth#0001 • V${config.VERSION.INFBOT}`, config.BOT_AVATAR);
     await sentMessage.message.author.send({embeds: [help1Embed, help2Embed, help3Embed]});
@@ -411,7 +411,8 @@ async function COMMAND_HELP(sentMessage) {
     let helpEmbed = new MessageEmbed()
         .setColor(config.COLOR.EVENT)
         .setTitle("Check your private messages!");
-    return sentMessage.message.reply({embeds: [helpEmbed]});
+        sentMessage.message.reply({embeds: [helpEmbed]}).catch(error => {consoleLoggingError(sentMessage, error)});
+        return;
 
 };
 
@@ -449,7 +450,8 @@ function COMMAND_BOT(sentMessage) {
                 {name: `Last Update [${config.PATCH.DATE}]`, value: config.PATCH.NOTES, inline: false}
             );
         return sentMessage.message.reply({embeds: [botEmbed]});
-    });
+    }).catch(error => {consoleLoggingError(sentMessage, error)});
+    return;
 
 };
 
@@ -471,7 +473,8 @@ function COMMAND_USER(sentMessage) {
         {name: "Joined this server:", value: `${formatFullDate(member.joinedAt)}`},
         {name: "Joined Discord:", value: `${formatFullDate(user.createdAt)}`},
         );
-    return sentMessage.message.reply({embeds: [userEmbed]})
+    sentMessage.message.reply({embeds: [userEmbed]}).catch(error => {consoleLoggingError(sentMessage, error)});
+    return;
 
 };
 
@@ -492,7 +495,8 @@ function COMMAND_SERVER(sentMessage) {
             {name: "Created:", value: `${formatFullDate(guild.createdAt)}`},
             {name: "INFBOT LOCAL prefix:", value: `${guildLocalPrefixes.get(guild.id)}`},
         );
-    return sentMessage.message.reply({embeds: [guildEmbed]});
+    sentMessage.message.reply({embeds: [guildEmbed]}).catch(error => {consoleLoggingError(sentMessage, error)});
+    return;
 
 };
 
@@ -508,7 +512,8 @@ function COMMAND_PREFIX(sentMessage) {
             {name: "GLOBAL", value: config.PREFIX.GLOBAL, inline: true},
             {name: "LOCAL", value: guildLocalPrefixes.get(sentMessage.message.guild.id), inline: true}
         );
-    return sentMessage.message.reply({embeds: [prefixEmbed]});
+    sentMessage.message.reply({embeds: [prefixEmbed]}).catch(error => {consoleLoggingError(sentMessage, error)});
+    return;
 
 };
 
@@ -533,7 +538,8 @@ async function COMMAND_SETPREFIX(sentMessage) {
             .setColor(config.COLOR.ERROR)
             .setTitle("Error!")
             .setDescription("You need to be the owner of this server to change the *LOCAL* prefix.")
-        return sentMessage.message.reply({embeds: [setPrefixEmbed]});
+        sentMessage.message.reply({embeds: [setPrefixEmbed]}).catch(error => {consoleLoggingError(sentMessage, error)});
+        return;
 
     };
 
@@ -545,7 +551,8 @@ async function COMMAND_SETPREFIX(sentMessage) {
             .setColor(config.COLOR.ERROR)
             .setTitle("Error!")
             .setDescription("Please provide a valid prefix.\n\n*A prefix is a series of characters without any spaces.*\nExample: `" + config.PREFIX.GLOBAL + "setprefix newprefix!`");
-        return sentMessage.message.reply({embeds: [setPrefixEmbed]});
+        sentMessage.message.reply({embeds: [setPrefixEmbed]}).catch(error => {consoleLoggingError(sentMessage, error)});
+        return;
 
     };
 
@@ -565,7 +572,8 @@ async function COMMAND_SETPREFIX(sentMessage) {
         .setColor(config.COLOR.SUCCESS)
         .setTitle("Success!")
         .setDescription("You've successfully set your *LOCAL* prefix to `" + sentMessage.args[0] + "`.");
-    return sentMessage.message.reply({embeds: [setPrefixEmbed]});
+    sentMessage.message.reply({embeds: [setPrefixEmbed]}).catch(error => {consoleLoggingError(sentMessage, error)});
+    return;
 
 };
 
@@ -592,7 +600,8 @@ async function COMMAND_STATUS(sentMessage) {
             .setColor(config.COLOR.EVENT)
             .setTitle("INFBOT Voice Channels are up and running!")
             .setDescription("Enter the `" + config.AUTO_VC.CHANNEL_NAME + "` channel to get started.")
-        return sentMessage.message.reply({embeds: [statusEmbed]});
+        sentMessage.message.reply({embeds: [statusEmbed]}).catch(error => {consoleLoggingError(sentMessage, error)});
+        return;
 
     } else if (guildCreatorChannel === "None" && guildCreatorChannelCategory === "None") {
 
@@ -600,7 +609,8 @@ async function COMMAND_STATUS(sentMessage) {
             .setColor(config.COLOR.EVENT)
             .setTitle("INFBOT Voice Channels aren't running on this server.")
             .setDescription("If your an admin, use `" + config.PREFIX.GLOBAL + "setup` to initialize INFBOT Voice Channels.");
-        return sentMessage.message.reply({embeds: [statusEmbed]});
+        sentMessage.message.reply({embeds: [statusEmbed]}).catch(error => {consoleLoggingError(sentMessage, error)});
+        return;
 
     } else {
 
@@ -630,7 +640,8 @@ async function COMMAND_STATUS(sentMessage) {
             .setColor(config.COLOR.WARNING)
             .setTitle("We've found an issue with your setup...")
             .setDescription("It seems that INFBOT Voice Channels were partially setup on this server. This shouldn't happen. We've reset the setup process, therefore, if you're the server owner, use `" + config.PREFIX.GLOBAL + "setup` to re-initialize INFBOT Voice Channels. You may delete any residual channels if there are any.");
-        return sentMessage.message.reply({embeds: [statusEmbed]});
+        sentMessage.message.reply({embeds: [statusEmbed]}).catch(error => {consoleLoggingError(sentMessage, error)});
+        return;
 
     };
 
@@ -656,7 +667,8 @@ async function COMMAND_SETUP(sentMessage) {
         let setupEmbed = new MessageEmbed()
             .setColor(config.COLOR.ERROR)
             .setTitle("You need to be the server owner to setup INFBOT Voice Channels.")
-        return sentMessage.message.reply({embeds: [setupEmbed]});
+        sentMessage.message.reply({embeds: [setupEmbed]}).catch(error => {consoleLoggingError(sentMessage, error)});
+        return;
 
     };
 
@@ -680,7 +692,8 @@ async function COMMAND_SETUP(sentMessage) {
         let setupEmbed = new MessageEmbed()
             .setColor(config.COLOR.WARNING)
             .setTitle("INFBOT Voice Channels are already setup on this server.")
-        return sentMessage.message.reply({embeds: [setupEmbed]});
+        sentMessage.message.reply({embeds: [setupEmbed]}).catch(error => {consoleLoggingError(sentMessage, error)});
+        return;
 
     } else if (channelCreator === "None" && channelCreatorCategory === "None") {
 
@@ -728,7 +741,8 @@ async function COMMAND_SETUP(sentMessage) {
                 .setColor(config.COLOR.SUCCESS)
                 .setTitle("INFBOT Voice Channels are now up and running!")
                 .setDescription("Enter the `" + config.AUTO_VC.CHANNEL_NAME + "` channel to get started.")
-            return sentMessage.message.reply({embeds: [setupEmbed]});
+            sentMessage.message.reply({embeds: [setupEmbed]}).catch(error => {consoleLoggingError(sentMessage, error)});
+            return;
     
         } catch (err) {
             console.log(err);
@@ -764,7 +778,8 @@ async function COMMAND_SETUP(sentMessage) {
             .setColor(config.COLOR.WARNING)
             .setTitle("We've found an issue with your setup...")
             .setDescription("It seems that INFBOT Voice Channels were partially setup on this server. This shouldn't happen. We've reset the setup process, therefore, please use `" + config.PREFIX.GLOBAL + "setup` to re-initialize INFBOT Voice Channels.");
-        return sentMessage.message.reply({embeds: [setupEmbed]});
+        sentMessage.message.reply({embeds: [setupEmbed]}).catch(error => {consoleLoggingError(sentMessage, error)});
+        return;
 
     };
 };
@@ -780,7 +795,8 @@ async function COMMAND_UNSETUP(sentMessage) {
         let unsetupEmbed = new MessageEmbed()
             .setColor(config.COLOR.ERROR)
             .setTitle("You need to be the server owner to remove INFBOT Voice Channels.")
-        return sentMessage.message.reply({embeds: [unsetupEmbed]});
+        sentMessage.message.reply({embeds: [unsetupEmbed]}).catch(error => {consoleLoggingError(sentMessage, error)});
+        return;
 
     };
 
@@ -813,7 +829,8 @@ async function COMMAND_UNSETUP(sentMessage) {
         let unsetupEmbed = new MessageEmbed()
             .setColor(config.COLOR.EVENT)
             .setTitle("INFBOT Voice Channels aren't running on this server.");
-        return sentMessage.message.reply({embeds: [unsetupEmbed]});
+        sentMessage.message.reply({embeds: [unsetupEmbed]}).catch(error => {consoleLoggingError(sentMessage, error)});
+        return;
 
     };
 
@@ -847,7 +864,8 @@ async function COMMAND_UNSETUP(sentMessage) {
     let unsetupEmbed = new MessageEmbed()
         .setColor(config.COLOR.SUCCESS)
         .setTitle("INFBOT Voice Channels have been removed from this server.");
-    return sentMessage.message.reply({embeds: [unsetupEmbed]});
+    sentMessage.message.reply({embeds: [unsetupEmbed]}).catch(error => {consoleLoggingError(sentMessage, error)});
+    return;
             
 };
 
@@ -861,7 +879,8 @@ function COMMAND_CHANNELINFO(sentMessage) {
         let channelInfoEmbed = new MessageEmbed()
         .setColor(config.COLOR.WARNING)
         .setTitle("You need to be in a voice channel.");
-        return sentMessage.message.reply({embeds: [channelInfoEmbed]});
+        sentMessage.message.reply({embeds: [channelInfoEmbed]}).catch(error => {consoleLoggingError(sentMessage, error)});
+        return;
         
     };
     
@@ -883,7 +902,8 @@ function COMMAND_CHANNELINFO(sentMessage) {
             {name: "Bitrate:", value: `${Math.round(channel.bitrate / 1000)}kbps`},
             {name: "User Limit:", value: `${channel.userLimit}`},
         );
-    return sentMessage.message.reply({embeds: [channelInfoEmbed]});
+    sentMessage.message.reply({embeds: [channelInfoEmbed]}).catch(error => {consoleLoggingError(sentMessage, error)});
+    return;
 
 };
 
@@ -911,8 +931,9 @@ async function COMMAND_SETBITRATE(sentMessage) {
         let setBitrateEmbed = new MessageEmbed()
             .setColor(config.COLOR.WARNING)
             .setTitle("You need to be in an INFBOT Voice Channel.");
-        return sentMessage.message.reply({embeds: [setBitrateEmbed]});
-        
+        sentMessage.message.reply({embeds: [setBitrateEmbed]}).catch(error => {consoleLoggingError(sentMessage, error)});
+        return;
+
     };
 
     let maxBitrate = 96;
@@ -931,7 +952,8 @@ async function COMMAND_SETBITRATE(sentMessage) {
             .setColor(config.COLOR.ERROR)
             .setTitle("Error!")
             .setDescription("Please provide a valid bitrate.\n\n*The bitrate is a number between `8`kbps and `" + maxBitrate + "`kbps.*\nExample: `" + config.PREFIX.GLOBAL + "setbitrate 96`");
-        return sentMessage.message.reply({embeds: [setBitrateEmbed]});
+        sentMessage.message.reply({embeds: [setBitrateEmbed]}).catch(error => {consoleLoggingError(sentMessage, error)});
+        return;
 
     };
 
@@ -942,7 +964,8 @@ async function COMMAND_SETBITRATE(sentMessage) {
     let setBitrateEmbed = new MessageEmbed()
         .setColor(config.COLOR.SUCCESS)
         .setTitle(`Your channel's bitrate is now set to ${sentMessage.message.member.voice.channel.bitrate / 1000}kbps.`);
-    return sentMessage.message.reply({embeds: [setBitrateEmbed]});
+    sentMessage.message.reply({embeds: [setBitrateEmbed]}).catch(error => {consoleLoggingError(sentMessage, error)});
+    return;
 
 };
 
@@ -970,7 +993,8 @@ async function COMMAND_SETUSERLIMIT(sentMessage) {
         let setUserLimitEmbed = new MessageEmbed()
             .setColor(config.COLOR.WARNING)
             .setTitle("You need to be in an INFBOT Voice Channel.");
-        return sentMessage.message.reply({embeds: [setUserLimitEmbed]});
+        sentMessage.message.reply({embeds: [setUserLimitEmbed]}).catch(error => {consoleLoggingError(sentMessage, error)});
+        return;
         
     };
 
@@ -982,7 +1006,8 @@ async function COMMAND_SETUSERLIMIT(sentMessage) {
             .setColor(config.COLOR.ERROR)
             .setTitle("Error!")
             .setDescription("Please provide a valid userlimit.\n\n*The userlimit is a number between `0` (unlimited) and `99` users.*\nExample: `" + config.PREFIX.GLOBAL + "setuserlimit 5`");
-        return sentMessage.message.reply({embeds: [setUserLimitEmbed]});
+        sentMessage.message.reply({embeds: [setUserLimitEmbed]}).catch(error => {consoleLoggingError(sentMessage, error)});
+        return;
 
     };
 
@@ -998,7 +1023,8 @@ async function COMMAND_SETUSERLIMIT(sentMessage) {
     let setUserLimitEmbed = new MessageEmbed()
         .setColor(config.COLOR.SUCCESS)
         .setTitle(`Your channel's userlimit is now set to ${userLimit}.`);
-    return sentMessage.message.reply({embeds: [setUserLimitEmbed]});
+    sentMessage.message.reply({embeds: [setUserLimitEmbed]}).catch(error => {consoleLoggingError(sentMessage, error)});
+    return;
 
 };
 
@@ -1026,7 +1052,8 @@ async function COMMAND_LOCK(sentMessage) {
         let lockEmbed = new MessageEmbed()
             .setColor(config.COLOR.WARNING)
             .setTitle("You need to be in an INFBOT Voice Channel.");
-        return sentMessage.message.reply({embeds: [lockEmbed]});
+        sentMessage.message.reply({embeds: [lockEmbed]}).catch(error => {consoleLoggingError(sentMessage, error)});
+        return;
         
     };
 
@@ -1042,7 +1069,8 @@ async function COMMAND_LOCK(sentMessage) {
         .setColor(config.COLOR.SUCCESS)
         .setTitle("You've successfully locked your channel.")
         .setDescription("Use `" + config.PREFIX.GLOBAL + "unlock` to unlock it.");
-    return sentMessage.message.reply({embeds: [lockEmbed]});
+    sentMessage.message.reply({embeds: [lockEmbed]}).catch(error => {consoleLoggingError(sentMessage, error)});
+    return;
 
 };
 
@@ -1070,7 +1098,8 @@ async function COMMAND_UNLOCK(sentMessage) {
         let unlockEmbed = new MessageEmbed()
             .setColor(config.COLOR.WARNING)
             .setTitle("You need to be in an INFBOT Voice Channel.");
-        return sentMessage.message.reply({embeds: [unlockEmbed]});
+        sentMessage.message.reply({embeds: [unlockEmbed]}).catch(error => {consoleLoggingError(sentMessage, error)});
+        return;
         
     };
 
@@ -1085,7 +1114,8 @@ async function COMMAND_UNLOCK(sentMessage) {
     let unlockEmbed = new MessageEmbed()
         .setColor(config.COLOR.SUCCESS)
         .setTitle("You've successfully unlocked your channel.");
-    return sentMessage.message.reply({embeds: [unlockEmbed]});
+    sentMessage.message.reply({embeds: [unlockEmbed]}).catch(error => {consoleLoggingError(sentMessage, error)});
+    return;
 
 };
 
@@ -1108,6 +1138,19 @@ function consoleLoggingAutoVoice(state) {
         case "deleted": result = "Voice channel deleted successfully."; break;
     };
     return console.log(colors.yellow(`${getDateTime()} >>> ${result}`));
+
+};
+
+function consoleLoggingError(sentMessage, error) {
+
+    console.log(colors.red(`${getDateTime()} >>> Error detected when using the ${colors.white(sentMessage.command)} command on guild '${colors.white(sentMessage.message.guild.name)}' (ID: ${colors.white(sentMessage.message.guild.id)}): ${error}`));
+
+    let errorEmbed = new MessageEmbed()
+        .setColor(config.COLOR.ERROR)
+        .setTitle("There was an error processing a request from the server.")
+        .setDescription("Here are some details about the error, they might help you or your server owner fix the issue or send a message to INFBOT's developer, @Zenyth#0001.\nThis usually happens when the bot doesn't have permission to send messages in a server.")
+        .addField("Error:", "`" + error + "`");
+    return sentMessage.message.author.send({embeds: [errorEmbed]});
 
 };
 

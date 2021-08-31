@@ -1,20 +1,22 @@
 {
     "VERSION": {
-        "INFBOT": "3.0.1",
+        "INFBOT": "3.0.2",
         "NODEJS": "16.8.0",
         "DISCORDJS": "13.1.0"
     },
+    "INVITE": "https://discord.com/oauth2/authorize?client_id=732316684496404521&scope=bot&permissions=17050640",
     "CODE": "https://github.com/INF-Zenyth/INFBOT",
     "DEVELOPER_DISCORD_SERVER": "https://discord.gg/jwEp6VX",
     "SUPPORT_DISCORD_SERVER": "https://discord.gg/jwEp6VX",
     "BOT_AVATAR": "https://i.imgur.com/OjNo39d.png",
+    "TOP_GG": "https://top.gg/bot/732316684496404521",
     "HELPERS": [
         "Atineon#2652",
         "Poux7#0001"
     ],
     "PATCH": {
-        "NOTES": "INFBOT V3.0's code is finished. Welcome back, INFBOT!\n• Upgraded discord.js's version to 13.1\n• Upgraded Node.js's version to 16.6.2\n\nPlease resetup INFBOT if you used INFBOT Voice Channels.",
-        "DATE": "16/08/21 : 03:00 UTC+2"
+        "NOTES": "• Upgraded Node.js's version to 16.8.0\n• Fixed crashing when the INFBOT can't send messages in guild.\n\nPlease resetup INFBOT if you used INFBOT Voice Channels before V3.",
+        "DATE": "31/08/21 : 19:30 UTC+2"
     },
     "AUTO_VC": {
         "CHANNEL_NAME": "➕ New Channel",
