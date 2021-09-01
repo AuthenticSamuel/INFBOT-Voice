@@ -40,7 +40,7 @@
 <div>
   <h2>INFBOT is a <a href="https://discord.js.org/">Discord.JS</a> bot that uses:</h2>
   <ul>
-    <li><a href="https://nodejs.org/en/">Node.js</a> @16.6.2</li>
+    <li><a href="https://nodejs.org/en/">Node.js</a> @16.8.0</li>
     <li><a href="https://discord.js.org/#/">Discord.js</a> @13.1.0</li>
     <li><a href="https://www.npmjs.com/package/mysql2">MySQL2</a> @2.3.0</li>
     <li><a href="https://www.npmjs.com/package/dotenv">dotenv</a> @10.0.0</li>
