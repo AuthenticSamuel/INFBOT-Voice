@@ -124,9 +124,12 @@ client.on("guildCreate", async (guild) => {
             VALUES('${guild.id}')
             `
         );
-    } catch (err) {
-        console.log(`${colors.red(`${getDateTime()} >>> Error detected:`)}`);
-        console.log(err);
+
+        console.log(colors.brightYellow(`${getDateTime()} >>> Joined guild: ${guild.name} (ID: ${guild.id})`));
+
+    } catch (error) {
+        console.log(colors.red(`${getDateTime()} >>> Error detected when joining guild:`));
+        console.log(error);
     };
 
 });
@@ -155,9 +158,12 @@ client.on("guildDelete", async (guild) => {
             WHERE guildId = '${guild.id}'
             `
         );
-    } catch (err) {
-        console.log(`${colors.red(`${getDateTime()} >>> Error detected:`)}`);
-        console.log(err);
+
+        console.log(colors.brightYellow(`${getDateTime()} >>> Left guild: ${guild.name} (ID: ${guild.id})`));
+
+    } catch (error) {
+        console.log(colors.red(`${getDateTime()} >>> Error detected when leaving guild:`));
+        console.log(error);
     };
 
 });

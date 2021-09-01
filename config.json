@@ -1,6 +1,6 @@
 {
     "VERSION": {
-        "INFBOT": "3.0.2",
+        "INFBOT": "3.0.3",
         "NODEJS": "16.8.0",
         "DISCORDJS": "13.1.0"
     },
