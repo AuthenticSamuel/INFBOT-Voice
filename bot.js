@@ -65,8 +65,44 @@ client.on("ready", () => {
     // END OF ONE-USE SECTION
 
     let allGuildInfo = [];
+    let ownerList = [];
     client.guilds.cache.forEach((guild) => {
         allGuildInfo.push(new Server(guild.id, guild.name, guild.memberCount, guild.channels.cache.filter((c) => c.type !== "GUILD_CATEGORY").size));
+
+        // ONLY USE WHEN YOU WANT TO NOTIFY GUILD OWNERS (DON'T USE OFTEN)
+
+        // let owner = await guild.members.fetch(guild.ownerId).catch(() => null);
+        // if (!ownerList.includes(owner.user.username)) {
+
+        //     await connection.query(
+        //         `
+        //         SELECT guildChannelCreator
+        //         FROM guildconfig
+        //         WHERE guildId = '${guild.id}'
+        //         `
+        //     ).then(async (result) => {
+
+        //         if (result[0][0].guildChannelCreator === "None") {
+
+        //             ownerList.push(owner.user.username);
+
+        //             let embed = new MessageEmbed()
+        //                 .setColor(config.COLOR.EVENT)
+        //                 .setTitle("INFBOT | Notification")
+        //                 .setThumbnail(config.BOT_AVATAR)
+        //                 .setDescription("I've noticed that INFBOT VCs is available on one or more of your server(s) (such as __**" + guild.name + "**__) but you haven't set me up yet.\n\nDon't forget that you can use the `" + config.PREFIX.GLOBAL + "setup` command to set up automatic voice channels!\n\nYou can also change your *LOCAL* prefix if  `" + config.PREFIX.LOCAL + "` is not favorable by using the `" + config.PREFIX.GLOBAL + "setprefix` command.")
+        //                 .setFooter("👍 Don't worry, I won't send these sort of notifications often.");
+        //             await owner.send({embeds: [embed]}).catch(() => null);
+
+        //             console.log(colors.magenta(`${getDateTime()} >>> Sent notification to ${owner.user.username}.`));
+                    
+        //         };
+
+        //     });
+            
+        // };
+
+        // END
 
         connection.query(
             `
