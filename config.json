@@ -1,6 +1,6 @@
 {
     "VERSION": {
-        "INFBOT": "3.0.3",
+        "INFBOT": "3.0.4",
         "NODEJS": "16.8.0",
         "DISCORDJS": "13.1.0"
     },
@@ -15,8 +15,8 @@
         "Poux7#0001"
     ],
     "PATCH": {
-        "NOTES": "• Upgraded Node.js's version to 16.8.0\n• Fixed crashing when the INFBOT can't send messages in guild.\n\nPlease resetup INFBOT if you used INFBOT Voice Channels before V3.",
-        "DATE": "31/08/21 : 19:30 UTC+2"
+        "NOTES": "• Fixed bug with *LOCAL* prefix not being recognized when joining a server before restart.\n\nPlease resetup INFBOT if you used INFBOT Voice Channels before V3.",
+        "DATE": "30/09/21 : 20:00 UTC+2"
     },
     "AUTO_VC": {
         "CHANNEL_NAME": "➕ New Channel",
