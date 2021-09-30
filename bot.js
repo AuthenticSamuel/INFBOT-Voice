@@ -124,6 +124,8 @@ client.on("guildCreate", async (guild) => {
             VALUES('${guild.id}')
             `
         );
+            
+        guildLocalPrefixes.set(guild.id, config.PREFIX.LOCAL);
 
         console.log(colors.brightYellow(`${getDateTime()} >>> Joined guild: ${guild.name} (ID: ${guild.id})`));
 
@@ -158,6 +160,8 @@ client.on("guildDelete", async (guild) => {
             WHERE guildId = '${guild.id}'
             `
         );
+            
+        guildLocalPrefixes.delete(guild.id);
 
         console.log(colors.brightYellow(`${getDateTime()} >>> Left guild: ${guild.name} (ID: ${guild.id})`));
 
