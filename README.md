@@ -4,6 +4,7 @@
 <div>
   <h2>Welcome to INFBOT's GitHub page!</h2>
   <div>
+    <p><b>INFBOT Utilities</b> is in development, and will be the next big version of INFBOT, which will ultimately become <b>INFBOT Services</b>!
     <p><b>INFBOT Voice Channels</b>, most commonly known as <b>INFBOT</b>, is a Discord bot that helps you create <b>automatic voice channels</b> to avoid cluttered channel lists in your servers.</p>
     <p>All commands are preceded by either the <em>GLOBAL</em> prefix: <b>infbot/</b> or your <em>LOCAL</em> prefix: <b>inf/</b> (default).</p>
   </div>
