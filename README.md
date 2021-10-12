@@ -2,7 +2,7 @@
 <h2 align="center">✅ V3.0 finished and now online! ✅</h2><br>
 
 <div>
-  <h2><a href="https://github.com/INF-Zenyth/INFBOT-Utilities/"><b>INFBOT Utilities</b></a> is in development, and will be the next big version of INFBOT, which will ultimately become <b>INFBOT Services</b>!</h2>
+  <h2><a href="https://github.com/INF-Zenyth/INFBOT-Utilities/"><b>INFBOT Utilities</b> is in development, and will be the next big version of INFBOT, which will ultimately become <b><em>INFBOT Services</em></b>!</a></h2>
   <h2>Welcome to INFBOT's GitHub page!</h2>
   <div>
     <p><b>INFBOT Voice Channels</b>, most commonly known as <b>INFBOT</b>, is a Discord bot that helps you create <b>automatic voice channels</b> to avoid cluttered channel lists in your servers.</p>
