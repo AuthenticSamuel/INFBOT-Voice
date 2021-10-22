@@ -12,7 +12,7 @@
     "TOP_GG": "https://top.gg/bot/732316684496404521",
     "HELPERS": [
         "Atineon#2652",
-        "Poux7#0001"
+        "Poux7#0270"
     ],
     "PATCH": {
         "NOTES": "• Fixed bug with *LOCAL* prefix not being recognized when joining a server before restart.\n\nPlease resetup INFBOT if you used INFBOT Voice Channels before V3.",
