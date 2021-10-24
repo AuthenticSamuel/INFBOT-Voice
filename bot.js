@@ -348,6 +348,7 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
 
 });
 
+/*
 client.on("messageReactionAdd", async (reaction, user) => {         // Only the Infernal Discord Server currently supports Reaction Roles
 
     if (reaction.message.partial) await reaction.message.fetch();
@@ -399,6 +400,7 @@ client.on("messageReactionRemove", async (reaction, user) => {      // Only the 
     };
 
 });
+*/
 
 async function COMMAND_HELP(sentMessage) {
 
